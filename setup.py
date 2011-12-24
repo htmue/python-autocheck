@@ -5,7 +5,7 @@
 #=============================================================================
 import sys
 
-from setuptools import setup
+from distutils.core import setup
 
 
 install_requires=[line.strip() for line in open('requirements.txt')]
@@ -21,6 +21,7 @@ setup(
     author_email='htmue@mac.com',
     url='https://github.com/htmue/python-autocheck',
     packages=['autocheck'],
+    package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml']),
     scripts=['bin/autocheck'],
     install_requires=install_requires,
 )

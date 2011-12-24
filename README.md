@@ -32,11 +32,22 @@ Tests
 
 Install test requirements:
 
+    $ pip install -r requirements.txt
     $ pip install -r requirements/test.txt
 
-Run:
+For Python-2.6 additionaly:
 
-    $ autocheck discover -v --once
+    $ pip install -r requirements/python-2.6.txt
+
+Run in project directory:
+
+    $ PYTHONPATH=. ./bin/autocheck discover -v --once
+
+
+TODO
+----
+
+* make ```autocheck.autorunner``` file pattern configurable
 
 
 License
