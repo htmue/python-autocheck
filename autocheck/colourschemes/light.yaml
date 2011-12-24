@@ -1,0 +1,26 @@
+# -*- coding:utf-8 -*-
+# Created by Hans-Thomas on 2011-05-12.
+#=============================================================================
+#   light.yaml --- Colour scheme for light background
+#=============================================================================
+
+ok: green
+OK: [bold, green]
+
+error: yellow
+ERROR: [bold, yellow]
+
+fail: red
+FAIL: [bold, red]
+
+skip: blue
+SKIP: [bold, blue]
+
+expected_failure: blue
+EXPECTED_FAILURE: [bold, blue]
+
+unexpected_success: green
+UNEXPECTED_SUCCESS: [bold, green]
+
+#.............................................................................
+#   light.yaml

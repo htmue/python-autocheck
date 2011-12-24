@@ -1,0 +1,124 @@
+# -*- coding:utf-8 -*-
+# Created by Hans-Thomas on 2011-06-01.
+#=============================================================================
+#   test_tagexpression.yaml --- Tag expression examples
+#=============================================================================
+
+single:
+  groups:
+  - '@name'
+  examples:
+  - [[], false]
+  - [[name], true]
+  - [[name, other], true]
+  - [[only, other], false]
+
+single negation:
+  groups:
+  - '~@name'
+  examples:
+  - [[], true]
+  - [[name], false]
+  - [[name, other], false]
+  - [[only, other], true]
+
+and pair:
+  groups:
+  - '@first'
+  - '@second'
+  examples:
+  - [[], false]
+  - [[first], false]
+  - [[second], false]
+  - [[first, other], false]
+  - [[second, other], false]
+  - [[first, second], true]
+  - [[first, second, other], true]
+  - [[only, other], false]
+
+or pair:
+  groups:
+  - '@first,@second'
+  examples:
+  - [[], false]
+  - [[first], true]
+  - [[second], true]
+  - [[first, other], true]
+  - [[second, other], true]
+  - [[first, second], true]
+  - [[first, second, other], true]
+  - [[only, other], false]
+
+and pair with negation:
+  groups:
+  - '@first'
+  - '~@second'
+  examples:
+  - [[], false]
+  - [[first], true]
+  - [[second], false]
+  - [[first, other], true]
+  - [[second, other], false]
+  - [[first, second], false]
+  - [[first, second, other], false]
+  - [[only, other], false]
+
+or pair with negation:
+  groups:
+  - '@first,~@second'
+  examples:
+  - [[], true]
+  - [[first], true]
+  - [[second], false]
+  - [[first, other], true]
+  - [[second, other], false]
+  - [[first, second], true]
+  - [[first, second, other], true]
+  - [[only, other], true]
+
+and pair of or pair with negation and single:
+  groups:
+  - '@first,~@second'
+  - '@third'
+  examples:
+  - [[], false]
+  - [[first], false]
+  - [[second], false]
+  - [[third], true]
+  - [[first, other], false]
+  - [[second, other], false]
+  - [[third, other], true]
+  - [[first, second], false]
+  - [[first, second, other], false]
+  - [[first, third], true]
+  - [[first, third, other], true]
+  - [[second, third], false]
+  - [[second, third, other], false]
+  - [[first, second, third], true]
+  - [[first, second, third, other], true]
+  - [[only, other], false]
+
+and pair of or pair and single with negation:
+  groups:
+  - '@first,@second'
+  - '~@third'
+  examples:
+  - [[], false]
+  - [[first], true]
+  - [[second], true]
+  - [[third], false]
+  - [[first, other], true]
+  - [[second, other], true]
+  - [[third, other], false]
+  - [[first, second], true]
+  - [[first, second, other], true]
+  - [[first, third], false]
+  - [[first, third, other], false]
+  - [[second, third], false]
+  - [[second, third, other], false]
+  - [[first, second, third], false]
+  - [[first, second, third, other], false]
+  - [[only, other], false]
+
+#.............................................................................
+#   test_tagexpression.yaml

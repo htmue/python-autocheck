@@ -1,0 +1,2 @@
+PyYAML==3.09
+python-termstyle==0.1.10

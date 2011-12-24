@@ -1,0 +1,26 @@
+# -*- coding:utf-8 -*-
+# Created by Hans-Thomas on 2011-05-30.
+#=============================================================================
+#   test_filtersuite.yaml --- Test Suite definitions
+#=============================================================================
+
+suites:
+
+  empty: []
+
+  flat: [one, two, three]
+
+  nested:
+    first: [one, two]
+    second: [three, four]
+
+  mixed:
+    flat: [one, two]
+    nested:
+      first: [three, four]
+      second: [five, six]
+      third:
+        deep: [seven, eight]
+
+#.............................................................................
+#   test_filtersuite.yaml
