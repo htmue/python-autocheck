@@ -3,8 +3,15 @@
 #=============================================================================
 #   setup.py --- Install script
 #=============================================================================
-from distutils.core import setup
+import sys
 
+from setuptools import setup
+
+
+install_requires=[line.strip() for line in open('requirements.txt')]
+
+if sys.version_info[:2] == (2, 6):
+    install_requires.extend(line.strip() for line in open('requirements/python-2.6.txt'))
 
 setup(
     name='autocheck',
@@ -15,6 +22,7 @@ setup(
     url='https://github.com/htmue/python-autocheck',
     packages=['autocheck'],
     scripts=['bin/autocheck'],
+    install_requires=install_requires,
 )
 
 #.............................................................................
