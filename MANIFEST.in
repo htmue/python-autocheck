@@ -1,2 +1,4 @@
 include requirements/*.txt
 include *.in *.md UNLICENSE
+recursive-include autocheck *.yaml
+recursive-include vows *.yaml *.py
