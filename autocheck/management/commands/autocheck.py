@@ -73,7 +73,10 @@ class Command(BaseCommand):
     
     def autotest(self, *args, **options):
         import resource
-        resource.setrlimit(resource.RLIMIT_NOFILE, (4096, -1))
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (4096, -1))
+        except Exception, e:
+            print repr(e)
         os.environ['DJANGO_SETTINGS_MODULE'] = options['settings'] or 'test_settings'
         from ...main import autocheck
         autocheck(sys.argv)
