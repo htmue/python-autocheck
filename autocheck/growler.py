@@ -18,7 +18,7 @@ class Notifier(object):
         self.growl.register()
 
     def notify(self, title, description, kind='pass', sticky=False):
-        icon = 'file://' + abspath(join(dirname(__file__), 'images', kind + '.png'))
+        icon = open(join(dirname(__file__), 'images', kind + '.png')).read()
         self.growl.notify(
             noteType = 'New Message',
             title = title,
