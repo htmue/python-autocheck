@@ -7,6 +7,7 @@ import datetime
 import logging
 import sys
 import time
+from StringIO import StringIO
 
 import status
 from colorizer import ColourWritelnDecorator, ColourScheme
@@ -35,14 +36,22 @@ def camel_to_underscore(value):
     return ''.join(camel_to_underscore())
 
 class LogHandler(logging.StreamHandler):
-
+    
     def __init__(self):
         logging.Handler.__init__(self)
-
+    
     @property
     def stream(self):
         return sys.stderr
 
+class UTF8StringIO(StringIO):
+    
+    def write(self, s):
+        if not isinstance(s, basestring):
+            s = unicode(s)
+        if isinstance(s, unicode):
+            s = s.encode('utf-8')
+        StringIO.write(self, s)
 
 class TestResult(unittest.TestResult):
     """A test result class that can print formatted text results to a stream.
@@ -219,6 +228,15 @@ class TestResult(unittest.TestResult):
     def _write_scenario_result_indent(self, test):
         if self.specs and getattr(test, 'is_scenario', False):
             self.stream.write('  ... ')
+    
+    def _setupStdout(self):
+        if self.buffer:
+            if self._stderr_buffer is None:
+                self._stderr_buffer = UTF8StringIO()
+                self._stdout_buffer = UTF8StringIO()
+            sys.stdout = self._stdout_buffer
+            sys.stderr = self._stderr_buffer
+
 
 
 class TestRunner(object):
