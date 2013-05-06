@@ -6,7 +6,7 @@
 import os, sys
 from optparse import make_option
 
-from django.core.management import BaseCommand, call_command, CommandError
+from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):

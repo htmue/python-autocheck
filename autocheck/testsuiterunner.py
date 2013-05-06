@@ -48,7 +48,6 @@ class TestSuiteRunner(DjangoTestSuiteRunner):
                     argv.append(value)
         if not discover:
             argv.extend(test_labels)
-        print ' '.join(argv)
         self.setup_test_environment()
         old_config = self.setup_databases()
         result = TestProgram(module=None, argv=argv, testRunner=TestRunner, database=Database())

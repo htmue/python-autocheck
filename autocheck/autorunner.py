@@ -3,6 +3,7 @@
 #=============================================================================
 #   autorunner.py --- Run tests automatically
 #=============================================================================
+import os
 import re
 import subprocess
 import threading
@@ -19,11 +20,21 @@ class AutocheckObserver(TreeObserver):
         self._lock = threading.Lock()
         self.child = None
         self.args = args + ['--once']
+        if self.is_django():
+            os.environ['DJANGO_SETTINGS_MODULE'] = 'test_settings'
+            self.args[0:1] = ['./manage.py', 'autocheck']
         for arg in args:
             if arg.startswith('--python='):
                 self.args = [arg.split('=', 1)[1]] + self.args
         self.db = database
         super(AutocheckObserver, self).__init__(dir, filepattern, GitIgnore(dir))
+    
+    def is_django(self):
+        if os.path.exists('manage.py'):
+            with open('manage.py') as manage:
+                for line in manage:
+                    if 'DJANGO_SETTINGS_MODULE' in line:
+                        return True
     
     @property
     def child(self):
@@ -38,8 +49,6 @@ class AutocheckObserver(TreeObserver):
     def kill_child(self):
         child = self.child
         if child is not None:
-            # child.terminate()
-            # child.send_signal(signal.SIGINT)
             return True
     
     def run_tests(self):
