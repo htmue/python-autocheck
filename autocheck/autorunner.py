@@ -3,18 +3,13 @@
 #=============================================================================
 #   autorunner.py --- Run tests automatically
 #=============================================================================
-import logging
-import os
 import re
 import subprocess
 import threading
 
-from db import Database
 from observer.gitignore import GitIgnore
 from observer.tree import TreeObserver
 
-
-log = logging.getLogger(__name__)
 
 DEFAULT_FILEPATTERN = re.compile(r'.*\.(py|txt|yaml|sql|html|js|css|feature)$')
 
