@@ -50,10 +50,6 @@ class Command(BaseCommand):
             self.autotest(*args, **options)
     
     def once(self, *args, **options):
-        try:
-            call_command('clean_pyc')
-        except CommandError:
-            pass
         from ...main import Unbuffered
         sys.stdout = Unbuffered(sys.stdout)
         from django.conf import settings
