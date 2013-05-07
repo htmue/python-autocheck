@@ -3,7 +3,6 @@
 #=============================================================================
 #   main.py --- Run tests automatically
 #=============================================================================
-import logging
 import os
 import signal
 import sys
@@ -11,9 +10,6 @@ import sys
 from autorunner import AutocheckObserver
 from db import Database
 from testrunner import TestRunner, TestProgram
-
-
-log = logging.getLogger('autocheck')
 
 
 class Unbuffered:
@@ -40,7 +36,6 @@ def single(args):
 def autocheck(args):
     handle_term()
     root = AutocheckObserver('.', args, database=Database())
-    log.debug('starting autocheck observer')
     while True:
         try:
             root.loop()
@@ -55,6 +50,10 @@ def main(args=sys.argv):
             args[1:3] = []
         args.remove('--once')
         single(args)
+    elif '--stats' in args:
+        database = Database()
+        for data in database.stats():
+            print '{time:f} {runs: >8}\t{suite}.{test}'.format(**data)
     else:
         autocheck(args)
 

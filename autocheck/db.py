@@ -8,6 +8,7 @@ import functools
 import hashlib
 import inspect
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 
@@ -302,6 +303,16 @@ class Database(object):
         run_id = self.get_last_successful_full_run_id(cursor=cursor)
         cursor.execute('DELETE FROM result WHERE finished<(SELECT started FROM run WHERE id=?)', (run_id,))
         cursor.execute('DELETE FROM run WHERE (SELECT count(*) FROM result WHERE run_id=run.id)=0')
+    
+    @with_cursor
+    def stats(self, cursor):
+        cursor.execute('SELECT * FROM test ORDER BY average_time')
+        name_re = re.compile(r'(?P<test>[^\s]+)\s+\((?P<suite>[^)]+)\)')
+        for row in cursor.fetchall():
+            data = dict(zip(row.keys(), row))
+            data['time'] = data['average_time'].total_seconds()
+            data.update(name_re.match(data['name']).groupdict())
+            yield data
 
 
 def source_hash(test_object):
