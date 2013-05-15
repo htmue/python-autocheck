@@ -63,6 +63,7 @@ class Database(object):
         )''',
     
     )
+    name_re = re.compile(r'(?P<test>[^\s]+)\s+\((?P<suite>[^)]+)\)')
     version = '1'
     
     def __init__(self, path=None, basedir=None, name='.autocheck.db'):
@@ -144,11 +145,10 @@ class Database(object):
         cursor.execute('INSERT INTO version(id) VALUES (?)', [self.version])
         cursor.execute('ALTER TABLE test ADD COLUMN test VARCHAR')
         cursor.execute('ALTER TABLE test ADD COLUMN suite VARCHAR')
-        name_re = re.compile(r'(?P<test>[^\s]+)\s+\((?P<suite>[^)]+)\)')
         cursor.execute('SELECT name FROM test')
         for row in cursor.fetchall():
             name = row[0]
-            data = name_re.match(name).groupdict()
+            data = self.name_re.match(name).groupdict()
             data['name'] = name
             cursor.execute('UPDATE test SET test=:test, suite=:suite WHERE name=:name', data)
     
@@ -197,11 +197,12 @@ class Database(object):
     @with_cursor
     def get_or_create_test(self, cursor, test_object):
         name = str(test_object)
+        data = self.name_re.match(name).groupdict()
         try:
             test = self.get_test(name, cursor=cursor)
         except TestDoesNotExist:
-            cursor.execute('INSERT INTO test(name,hash,runs,average_time) VALUES (?,?,?,?)',
-                (name,source_hash(test_object),0,0))
+            cursor.execute('INSERT INTO test(name,test,suite,hash,runs,average_time) VALUES (?,?,?,?,?,?)',
+                (name,data['test'], data['suite'], source_hash(test_object), 0, 0))
             test = self.get_test(name, cursor=cursor)
         return test
     
