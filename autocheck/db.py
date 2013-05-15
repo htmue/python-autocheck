@@ -3,12 +3,15 @@
 #=============================================================================
 #   db.py --- Tests database
 #=============================================================================
+from __future__ import print_function
+
 import datetime
 import functools
 import hashlib
 import inspect
 import os
 import re
+import shutil
 import sqlite3
 from contextlib import contextmanager
 
@@ -40,6 +43,8 @@ class Database(object):
         
         test = '''test(
             name VARCHAR PRIMARY KEY,
+            test VARCHAR,
+            suite VARCHAR,
             hash VARCHAR,
             runs INTEGER,
             average_time TIMEDELTA
@@ -52,8 +57,13 @@ class Database(object):
             run_id INTEGER REFERENCES run(id),
             status VARCHAR
         )''',
+        
+        version = '''version(
+            id VARCHAR PRIMARY KEY
+        )''',
     
     )
+    version = '1'
     
     def __init__(self, path=None, basedir=None, name='.autocheck.db'):
         if path is None:
@@ -64,9 +74,15 @@ class Database(object):
         self.connection = None
         self.current_run_id = None
     
-    def connect(self):
+    def _connect(self):
         self.connection = sqlite3.connect(self.path, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         self.connection.row_factory = sqlite3.Row
+    
+    def connect(self):
+        self._connect()
+        current_version = self.current_version()
+        if current_version != self.version:
+            self.migrate(current_version)
     
     def close(self):
         self.connection.close()
@@ -102,6 +118,39 @@ class Database(object):
             else:
                 return method(self, cursor, *args, **kwargs)
         return wrapper
+    
+    @with_cursor
+    def current_version(self, cursor):
+        try:
+            cursor.execute('SELECT id FROM version ORDER BY id DESC LIMIT 1')
+        except sqlite3.OperationalError:
+            return '0'
+        return cursor.fetchone()[0]
+    
+    def migrate(self, current_version):
+        print('migrating {} -> {} ...'.format(current_version, self.version), end='')
+        self.close()
+        new_path = '{}.bak-{}-{}'.format(self.path, current_version, self.version)
+        os.rename(self.path, new_path)
+        shutil.copy2(new_path, self.path)
+        self._connect()
+        if current_version == '0':
+            self.migrate_0_1()
+        print('done.')
+    
+    @with_cursor
+    def migrate_0_1(self, cursor):
+        self.create_table('version', cursor=cursor)
+        cursor.execute('INSERT INTO version(id) VALUES (?)', [self.version])
+        cursor.execute('ALTER TABLE test ADD COLUMN test VARCHAR')
+        cursor.execute('ALTER TABLE test ADD COLUMN suite VARCHAR')
+        name_re = re.compile(r'(?P<test>[^\s]+)\s+\((?P<suite>[^)]+)\)')
+        cursor.execute('SELECT name FROM test')
+        for row in cursor.fetchall():
+            name = row[0]
+            data = name_re.match(name).groupdict()
+            data['name'] = name
+            cursor.execute('UPDATE test SET test=:test, suite=:suite WHERE name=:name', data)
     
     @with_cursor
     def setup(self, cursor):
@@ -305,15 +354,23 @@ class Database(object):
         cursor.execute('DELETE FROM run WHERE (SELECT count(*) FROM result WHERE run_id=run.id)=0')
     
     @with_cursor
-    def stats(self, cursor):
-        cursor.execute('SELECT * FROM test ORDER BY average_time')
-        name_re = re.compile(r'(?P<test>[^\s]+)\s+\((?P<suite>[^)]+)\)')
+    def stats(self, cursor, suite=None):
+        if suite is None:
+            cursor.execute('SELECT * FROM test ORDER BY average_time')
+        else:
+            cursor.execute('SELECT * FROM test WHERE suite=? ORDER BY average_time', [suite])
         for row in cursor.fetchall():
             data = dict(zip(row.keys(), row))
             data['time'] = data['average_time'].total_seconds()
-            data.update(name_re.match(data['name']).groupdict())
             yield data
 
+    @with_cursor
+    def stats_grouped(self, cursor):
+        cursor.execute('SELECT suite, total(average_time) as time FROM test GROUP BY suite ORDER BY time')
+        for row in cursor.fetchall():
+            suite = dict(zip(row.keys(), row))
+            suite['tests'] = list(self.stats(cursor=cursor, suite=suite['suite']))
+            yield suite
 
 def source_hash(test_object):
     test_method = getattr(test_object, test_object._testMethodName)

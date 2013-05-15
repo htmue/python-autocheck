@@ -3,6 +3,8 @@
 #=============================================================================
 #   autocheck.py --- Autocheck command
 #=============================================================================
+from __future__ import print_function
+
 import os, sys
 from optparse import make_option
 
@@ -72,7 +74,7 @@ class Command(BaseCommand):
         try:
             resource.setrlimit(resource.RLIMIT_NOFILE, (4096, -1))
         except Exception, e:
-            print repr(e)
+            print(repr(e))
         os.environ['DJANGO_SETTINGS_MODULE'] = options['settings'] or 'test_settings'
         from ...main import autocheck
         autocheck(sys.argv)

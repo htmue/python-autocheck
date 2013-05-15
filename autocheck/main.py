@@ -3,6 +3,8 @@
 #=============================================================================
 #   main.py --- Run tests automatically
 #=============================================================================
+from __future__ import print_function
+
 import os
 import signal
 import sys
@@ -41,7 +43,7 @@ def autocheck(args):
             root.loop()
         except KeyboardInterrupt:
             if not root.kill_child():
-                print >> sys.stderr, 'Got signal, exiting.'
+                print('Got signal, exiting.', file=sys.stderr)
                 break
 
 def main(args=sys.argv):
@@ -50,10 +52,16 @@ def main(args=sys.argv):
             args[1:3] = []
         args.remove('--once')
         single(args)
+    elif '--stats-flat' in args:
+        database = Database()
+        for test in database.stats():
+            print('{time:f} {runs: >8}\t{suite}.{test}'.format(**test))
     elif '--stats' in args:
         database = Database()
-        for data in database.stats():
-            print '{time:f} {runs: >8}\t{suite}.{test}'.format(**data)
+        for suite in database.stats_grouped():
+            print('{time:f} {suite}'.format(**suite))
+            for test in suite['tests']:
+                print('\t{time:f} {runs: >8}\t{test}'.format(**test))
     else:
         autocheck(args)
 
