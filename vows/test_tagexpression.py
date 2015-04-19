@@ -5,6 +5,7 @@
 #=============================================================================
 import os.path
 
+import six
 import yaml
 from should_dsl import should
 
@@ -18,7 +19,7 @@ test_examples = yaml.load(open(os.path.splitext(__file__)[0] + '.yaml'))
 class TagExpressionVowsMeta(type):
     
     def __new__(self, classname, bases, classdict):
-        for key, test in test_examples.iteritems():
+        for key, test in six.iteritems(test_examples):
             for test_in, test_result in test['examples']:
                 test_name = '_'.join(['test', 'example', 'with', key.replace(' ', '_')]
                     + (test_in if test_in else ['empty']))
@@ -35,8 +36,9 @@ def define_method(classdict, groups, test_in, test_result, test_name):
     classdict[test_name] = runTest
 
 
-class TagExpressionVows(unittest.TestCase):
-    __metaclass__ = TagExpressionVowsMeta
+class TagExpressionVowsBase(six.with_metaclass(TagExpressionVowsMeta)): pass
+
+class TagExpressionVows(TagExpressionVowsBase, unittest.TestCase):
     
     def test_always_matches_when_empty(self):
         tags = TagExpression()

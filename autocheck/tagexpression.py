@@ -5,9 +5,11 @@
 #=============================================================================
 import re
 
-from compat import unittest
-from filtersuite import flatten_suite
-from tags import get_tags
+from six.moves import map
+
+from .compat import unittest
+from .filtersuite import flatten_suite
+from .tags import get_tags
 
 
 class TagExpressionParseError(Exception): pass
@@ -53,7 +55,7 @@ class TagExpression(object):
         elif len(tags) == 0:
             raise TagExpressionParseError(string)
         else:
-            return OrNode(map(self.parse, tags))
+            return OrNode(list(map(self.parse, tags)))
 
 
 class TagNode(object):

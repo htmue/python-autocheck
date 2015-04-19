@@ -4,6 +4,7 @@
 #   logger.py --- Logger meta class
 #=============================================================================
 import logging
+import six
 
 
 class MetaLogger(type):
@@ -12,8 +13,8 @@ class MetaLogger(type):
         classdict.setdefault('log', logging.getLogger('%s.%s' % (classdict['__module__'], classname)))
         return type.__new__(self, classname, bases, classdict)
 
-class Logger(object):
-    __metaclass__ = MetaLogger
+class Logger(six.with_metaclass(MetaLogger)):
+    pass
 
 #.............................................................................
 #   logger.py

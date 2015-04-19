@@ -6,7 +6,7 @@
 import os.path
 import sys
 
-from main import main
+from .main import main
 
 
 if sys.argv[0].endswith('__main__.py'):

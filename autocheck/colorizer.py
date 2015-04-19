@@ -5,6 +5,7 @@
 #=============================================================================
 import os.path
 
+import six
 import termstyle
 import yaml
 
@@ -45,16 +46,17 @@ class ColourWritelnDecorator(ColourDecorator):
 class ColourScheme(object):
     
     def __init__(self, scheme):
-        if isinstance(scheme, basestring):
+        if isinstance(scheme, six.string_types):
             filename = os.path.join(os.path.dirname(__file__), 'colourschemes', scheme + '.yaml')
-            self.scheme = yaml.load(open(filename))
+            with open(filename) as scheme_file:
+                self.scheme = yaml.load(scheme_file)
         else:
             self.scheme = scheme
     
     def __getattr__(self, key):
         if self.scheme is not None:
             colour = self.scheme.get(key)
-            if isinstance(colour, basestring):
+            if isinstance(colour, six.string_types):
                 return getattr(termstyle, colour)
             elif colour is None:
                 return lambda x: x

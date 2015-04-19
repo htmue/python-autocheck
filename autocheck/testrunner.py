@@ -7,17 +7,18 @@ import datetime
 import logging
 import sys
 import time
-from StringIO import StringIO
 
-import status
-from colorizer import ColourWritelnDecorator, ColourScheme
-from compat import unittest
-from filtersuite import filter_suite
-from tagexpression import TagExpression
+from six.moves import map, cStringIO as StringIO
+
+from . import status
+from .colorizer import ColourWritelnDecorator, ColourScheme
+from .compat import unittest
+from .filtersuite import filter_suite
+from .tagexpression import TagExpression
 
 
 try:
-    from growler import Notifier
+    from .growler import Notifier
 except ImportError:
     growler = None
 else:
@@ -43,15 +44,6 @@ class LogHandler(logging.StreamHandler):
     @property
     def stream(self):
         return sys.stderr
-
-class UTF8StringIO(StringIO):
-    
-    def write(self, s):
-        if not isinstance(s, basestring):
-            s = unicode(s)
-        if isinstance(s, unicode):
-            s = s.encode('utf-8')
-        StringIO.write(self, s)
 
 class TestResult(unittest.TestResult):
     """A test result class that can print formatted text results to a stream.
@@ -232,8 +224,8 @@ class TestResult(unittest.TestResult):
     def _setupStdout(self):
         if self.buffer:
             if self._stderr_buffer is None:
-                self._stderr_buffer = UTF8StringIO()
-                self._stdout_buffer = UTF8StringIO()
+                self._stderr_buffer = StringIO()
+                self._stdout_buffer = StringIO()
             sys.stdout = self._stdout_buffer
             sys.stderr = self._stderr_buffer
 

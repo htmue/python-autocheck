@@ -1,2 +1,2 @@
-mock==0.7.2
--e git+https://github.com/hugobr/should-dsl#egg=should_dsl
+mock
+-e git+https://github.com/hugobr/should-dsl.git@3ddb33a70e43d38c80dcd15fd98d29a72ee8d3d7#egg=should_dsl

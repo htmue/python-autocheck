@@ -3,7 +3,7 @@
 #=============================================================================
 #   tags.py --- Add tags to tests
 #=============================================================================
-from compat import unittest
+from .compat import unittest
 
 
 def tag(*tags):

@@ -5,10 +5,13 @@
 #=============================================================================
 import os.path
 import re
+from functools import partial
 
 import mock
+import six
 import yaml
 from should_dsl import should
+from six.moves import map
 
 from autocheck.compat import unittest
 from autocheck.filtersuite import filter_suite, flatten_suite
@@ -126,7 +129,7 @@ class FlattenSuiteVows(FilterSuiteTestCase):
         
         flattened = flatten_suite(suite)
         
-        next = iter(flattened).next
+        next = partial(six.next, iter(flattened))
         next |should| throw(StopIteration)
     
     def test_handles_flat_suite_properly(self):
@@ -174,7 +177,7 @@ class FilterSuiteVows(FilterSuiteTestCase):
     
     def test_returns_TestSuite_instance(self, Database):
         suite = self.get_suite('flat')
-        candidates = map(str, suite)[:1]
+        candidates = list(map(str, suite))[:1]
         db = Database()
         db.candidates = mock.Mock('candidates', return_value=set(candidates))
         

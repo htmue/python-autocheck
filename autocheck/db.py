@@ -15,7 +15,15 @@ import shutil
 import sqlite3
 from contextlib import contextmanager
 
-from status import Status, ok
+import six
+
+from .status import Status, ok
+try:
+    import pytz
+except ImportError:
+    have_pytz = False
+else:
+    have_pytz = True
 
 
 class DatabaseError(Exception): pass
@@ -122,11 +130,16 @@ class Database(object):
     
     @with_cursor
     def current_version(self, cursor):
+        self.create_table('version', cursor=cursor)
         try:
             cursor.execute('SELECT id FROM version ORDER BY id DESC LIMIT 1')
         except sqlite3.OperationalError:
             return '0'
-        return cursor.fetchone()[0]
+        row = cursor.fetchone()
+        if row is None:
+            cursor.execute('INSERT INTO version(id) VALUES (?)', [self.version])
+            return self.version
+        return row[0]
     
     def migrate(self, current_version):
         print('migrating {} -> {} ...'.format(current_version, self.version), end='')
@@ -164,7 +177,7 @@ class Database(object):
     
     @with_cursor
     def add_run(self, cursor):
-        cursor.execute('INSERT INTO run(started) VALUES (?)', [datetime.datetime.utcnow()])
+        cursor.execute('INSERT INTO run(started) VALUES (?)', [self.utcnow()])
         self.current_run_id = cursor.lastrowid
     
     @property
@@ -225,7 +238,7 @@ class Database(object):
     @with_cursor
     def add_results(self, cursor, results):
         for test_object, started, finished, status in results:
-            self.add_result(test_object, started, finished, status, cursor=cursor)
+            self.add_result(test_object, self.to_utc(started), self.to_utc(finished), status, cursor=cursor)
     
     @with_cursor
     def get_last_result(self, cursor, name):
@@ -259,7 +272,7 @@ class Database(object):
         data = dict(self.get_result_counts(run_id, cursor=cursor))
         data.update(
             run_id = run_id,
-            finished = datetime.datetime.utcnow(),
+            finished = self.utcnow(),
             wasSuccessful = data['errors'] == data['failures'] == 0,
             testsRun = self.get_result_count(run_id, cursor=cursor),
             full = full,
@@ -372,6 +385,12 @@ class Database(object):
             suite = dict(zip(row.keys(), row))
             suite['tests'] = list(self.stats(cursor=cursor, suite=suite['suite']))
             yield suite
+    
+    def to_utc(self, datetime):
+        return pytz.utc.localize(datetime) if have_pytz else datetime
+    
+    def utcnow(self):
+        return self.to_utc(datetime.datetime.utcnow())
 
 def source_hash(test_object):
     test_method = getattr(test_object, test_object._testMethodName)
@@ -379,6 +398,8 @@ def source_hash(test_object):
         source = test_method.im_self.getsource()
     except AttributeError:
         source = inspect.getsource(test_method)
+    if six.PY3:
+        source = source.encode('utf-8')
     return hashlib.sha1(source).hexdigest()
 
 def timedelta_to_float(delta):

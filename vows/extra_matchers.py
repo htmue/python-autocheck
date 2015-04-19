@@ -3,9 +3,8 @@
 #=============================================================================
 #   extra_matchers.py --- Should-DSL extra matchers
 #=============================================================================
-from itertools import izip_longest
-
 from should_dsl import matcher
+from six.moves import zip_longest
 
 
 @matcher
@@ -17,7 +16,7 @@ class EachEqual(object):
         return self
     
     def differ(self, given):
-        for n, (left, right) in enumerate(izip_longest(given, self._expected)):
+        for n, (left, right) in enumerate(zip_longest(given, self._expected)):
             if left != right:
                 yield n + 1, left, right
     
@@ -37,28 +36,6 @@ def be_equal_to():
 @matcher
 def be_in():
     return (lambda item, container: item in container, '%r is %sinto %r')
-
-@matcher
-class AssertCalledOnceWith(object):
-    name = 'be_called_once_with'
-    
-    def __call__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
-        return self
-    
-    def match(self, given):
-        try:
-            given.assert_called_once_with(*self.args, **self.kwargs)
-        except AssertionError as error:
-            self.error = error
-            return False
-        else:
-            return True
-    
-    def message_for_failed_should(self):
-        return str(self.error)
-
 
 #.............................................................................
 #   extra_matchers.py

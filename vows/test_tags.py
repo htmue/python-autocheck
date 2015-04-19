@@ -4,6 +4,7 @@
 #   test_tags.py --- Tag support vows
 #=============================================================================
 from should_dsl import should
+from six.moves import map
 
 from autocheck.compat import unittest
 from autocheck.tagexpression import TagExpression

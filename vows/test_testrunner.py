@@ -4,11 +4,12 @@
 #   test_testrunner.py --- TestResult vows
 #=============================================================================
 import datetime
-from cStringIO import StringIO
+import sys
 from functools import partial
 
 import mock
 from should_dsl import should, should_not
+from six.moves import cStringIO as StringIO
 
 from autocheck.compat import unittest
 from autocheck.status import expected_failure, ok, error, fail, skip, unexpected_success
@@ -63,34 +64,40 @@ class DatabaseTestResultVows(TestTestCase):
         result.addSuccess(self.test)
         self.stop_test(result)
         
-        db.add_results |should| be_called_once_with([(self.test, start, finish, ok.key)])
+        db.add_results.assert_called_once_with([(self.test, start, finish, ok.key)])
     
     def test_passes_on_failure_to_database(self, Database):
         db = Database()
         result, start, finish = self.start_test(db)
-        
-        result.addFailure(self.test, [None]*3)
+
+        try: x
+        except Exception as e:
+            result.addFailure(self.test, sys.exc_info())
         self.stop_test(result)
-        
-        db.add_results |should| be_called_once_with([(self.test, start, finish, fail.key)])
-    
+
+        db.add_results.assert_called_once_with([(self.test, start, finish, fail.key)])
+
     def test_passes_on_error_to_database(self, Database):
         db = Database()
         result, start, finish = self.start_test(db)
-        
-        result.addError(self.test, [None]*3)
+
+        try: x
+        except Exception as e:
+            result.addError(self.test, sys.exc_info())
         self.stop_test(result)
-        
-        db.add_results |should| be_called_once_with([(self.test, start, finish, error.key)])
-    
+
+        db.add_results.assert_called_once_with([(self.test, start, finish, error.key)])
+
     def test_passes_on_expected_failure_to_database(self, Database):
         db = Database()
         result, start, finish = self.start_test(db)
-        
-        result.addExpectedFailure(self.test, [None]*3)
+
+        try: x
+        except Exception as e:
+            result.addExpectedFailure(self.test, sys.exc_info())
         self.stop_test(result)
-        
-        db.add_results |should| be_called_once_with([(self.test, start, finish, expected_failure.key)])
+
+        db.add_results.assert_called_once_with([(self.test, start, finish, expected_failure.key)])
     
     def test_passes_on_skip_to_database(self, Database):
         db = Database()
@@ -99,7 +106,7 @@ class DatabaseTestResultVows(TestTestCase):
         result.addSkip(self.test, 'reason')
         self.stop_test(result)
         
-        db.add_results |should| be_called_once_with([(self.test, start, finish, skip.key)])
+        db.add_results.assert_called_once_with([(self.test, start, finish, skip.key)])
     
     def test_passes_on_unexpected_success_to_database(self, Database):
         db = Database()
@@ -108,7 +115,7 @@ class DatabaseTestResultVows(TestTestCase):
         result.addUnexpectedSuccess(self.test)
         self.stop_test(result)
         
-        db.add_results |should| be_called_once_with([(self.test, start, finish, unexpected_success.key)])
+        db.add_results.assert_called_once_with([(self.test, start, finish, unexpected_success.key)])
 
 
 @mock.patch('autocheck.db.Database')
@@ -132,8 +139,8 @@ class DatabaseTestRunnerVows(TestTestCase):
         
         runner.run(self.test)
         
-        db.add_run |should| be_called_once_with()
-        db.finish_run |should| be_called_once_with(True)
+        db.add_run.assert_called_once_with()
+        db.finish_run.assert_called_once_with(True)
     
     def test_passes_on_partial_run_to_database(self, Database):
         db = Database()
@@ -141,8 +148,8 @@ class DatabaseTestRunnerVows(TestTestCase):
         
         runner.run(self.test)
         
-        db.add_run |should| be_called_once_with()
-        db.finish_run |should| be_called_once_with(False)
+        db.add_run.assert_called_once_with()
+        db.finish_run.assert_called_once_with(False)
     
     def test_accepts_now_function_parameter(self, Database):
         def now_function():

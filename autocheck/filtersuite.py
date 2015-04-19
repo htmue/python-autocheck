@@ -5,7 +5,7 @@
 #=============================================================================
 from operator import methodcaller
 
-from compat import unittest
+from .compat import unittest
 
 
 def flatten_suite(suite):

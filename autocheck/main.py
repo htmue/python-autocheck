@@ -62,7 +62,7 @@ def main(args=sys.argv):
     import resource
     try:
         resource.setrlimit(resource.RLIMIT_NOFILE, (4096, -1))
-    except Exception, e:
+    except Exception as e:
         print(repr(e))
     if '--once' in args:
         if args[1] == '-m' and args[2] in ('autocheck', 'autocheck.main'):
