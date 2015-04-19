@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Created by Hans-Thomas on 2015-04-19.
 #=============================================================================
-#   __inid__.py --- Django support
+#   __init__.py --- Django support
 #=============================================================================
 import os.path
 
@@ -17,17 +17,5 @@ try:
 except ImportError:
     from .testsuiterunner import TestSuiteRunner
 
-
-def is_django():
-    if os.path.exists('manage.py'):
-        with open('manage.py') as manage:
-            for line in manage:
-                if 'DJANGO_SETTINGS_MODULE' in line:
-                    try:
-                        import django
-                    except ImportError:
-                        return
-                    return True
-
 #.............................................................................
-#   discoveryrunner.py
+#   __init__.py

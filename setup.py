@@ -15,7 +15,7 @@ if sys.version_info[:2] == (2, 6):
 
 setup(
     name='autocheck',
-    version='0.2.1',
+    version='0.2.2',
     description='Improved unittest test runner',
     author='Hans-Thomas Mueller',
     author_email='htmue@mac.com',
