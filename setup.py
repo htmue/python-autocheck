@@ -4,8 +4,7 @@
 #   setup.py --- Install script
 #=============================================================================
 import sys
-import setuptools
-from distutils.core import setup
+from setuptools import setup
 
 
 install_requires=['PyYAML', 'watchdog', 'python-termstyle', 'six']
@@ -29,6 +28,8 @@ setup(
     package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
     scripts=['bin/autocheck'],
     install_requires=install_requires,
+    setup_requires=['setuptools-markdown'],
+    long_description_markdown_filename='README.md',
 )
 
 #.............................................................................
