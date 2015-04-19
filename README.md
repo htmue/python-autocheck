@@ -18,13 +18,29 @@ Accepts the same options as ```python -m unittest```.
 Installation
 ------------
 
-    $ pip install -e git+https://github.com/htmue/python-autocheck#egg=autocheck
+    $ pip install autocheck
 
 Optionally, for Growl support:
 
     $ pip install gntp
 
-Install ```python-observer``` kernel support according to https://github.com/htmue/python-observer.
+Install ```watchdog``` kernel support according to https://pythonhosted.org/watchdog/installation.html.
+
+
+Django support
+--------------
+
+Add autocheck to installed apps:
+
+    INSTALLED_APPS = (
+        ...
+        'autocheck.contrib.django',
+        ...
+    )
+
+Run tests:
+
+    $ autocheck
 
 
 Tests

@@ -12,6 +12,7 @@ import threading
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
 
+from .contrib.django import is_django
 from .gitignore import GitIgnore
 
 
@@ -23,7 +24,7 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         self._lock = threading.Lock()
         self.child = None
         self.args = args + ['--once']
-        if self.is_django():
+        if is_django():
             os.environ['DJANGO_SETTINGS_MODULE'] = 'test_settings'
             self.args[0:1] = ['./manage.py', 'autocheck']
         for arg in args:
@@ -31,27 +32,19 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
                 self.args = [arg.split('=', 1)[1]] + self.args
         self.db = database
         self.gitignore = GitIgnore(dir)
-        super(AutocheckEventHandler, self).__init__(regexes=[filepattern], ignore_directories=False, case_sensitive=False)
+        super(AutocheckEventHandler, self).__init__(regexes=[filepattern], ignore_directories=True, case_sensitive=False)
     
-    def is_django(self):
-        if os.path.exists('manage.py'):
-            with open('manage.py') as manage:
-                for line in manage:
-                    if 'DJANGO_SETTINGS_MODULE' in line:
-                        return True
-
     def dispatch(self, event):
         paths = []
         if has_attribute(event, 'dest_path'):
             paths.append(unicode_paths.decode(event.dest_path))
-        if event.src_path:
+        elif event.src_path:
             paths.append(unicode_paths.decode(event.src_path))
-
+        
         if any(self.gitignore.match(p) for p in paths):
             return
-        
         super(AutocheckEventHandler, self).dispatch(event)
-
+    
     @property
     def child(self):
         with self._lock:
@@ -79,7 +72,7 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
             return self.db.should_run_again()
         finally:
             self.db.close()
-
+    
     def on_any_event(self, event):
         while self.run_tests():
             pass

@@ -5,18 +5,12 @@
 #=============================================================================
 from django.test.simple import DjangoTestSuiteRunner
 
+from .quickstart import QuickstartMixin
 from autocheck.db import Database
 from autocheck.testrunner import TestRunner, TestProgram
 
 
-try:
-    from south.management.commands import patch_for_test_db_setup
-except ImportError:
-    pass
-else:
-    patch_for_test_db_setup()
-
-class TestSuiteRunner(DjangoTestSuiteRunner):
+class TestSuiteRunner(QuickstartMixin, DjangoTestSuiteRunner):
     opts = dict(
         failfast = '--failfast',
         catch = '--catch',
@@ -26,10 +20,10 @@ class TestSuiteRunner(DjangoTestSuiteRunner):
     )
     discover_opts = dict(
         start = '-s',
-        top = '-t',
+        top_level = '-t',
     )
     discover_opts.update(opts)
-    
+
     def run_tests(self, test_labels, extra_tests=None, **kwargs):
         argv = ['./manage.py unittest']
         discover = len(test_labels) == 0 or len(test_labels) == 1 and test_labels[0] == 'discover'

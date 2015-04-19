@@ -4,7 +4,7 @@
 #   setup.py --- Install script
 #=============================================================================
 import sys
-
+import setuptools
 from distutils.core import setup
 
 
@@ -15,12 +15,12 @@ if sys.version_info[:2] == (2, 6):
 
 setup(
     name='autocheck',
-    version='0.1.1',
-    description='Improved unittest2 test runner',
+    version='0.2.0',
+    description='Improved unittest test runner',
     author='Hans-Thomas Mueller',
     author_email='htmue@mac.com',
     url='https://github.com/htmue/python-autocheck',
-    packages=['autocheck'],
+    packages=['autocheck', 'autocheck.contrib', 'autocheck.contrib.django'],
     package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml']),
     scripts=['bin/autocheck'],
     install_requires=install_requires,
