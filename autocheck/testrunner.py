@@ -9,9 +9,8 @@ import datetime
 import logging
 import sys
 import time
-from io import StringIO
 
-from six.moves import map
+from six.moves import map, cStringIO as StringIO
 
 from . import status
 from .colorizer import ColourWritelnDecorator, ColourScheme

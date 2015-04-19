@@ -11,7 +11,7 @@ from functools import partial
 
 import mock
 from should_dsl import should, should_not
-from io import StringIO
+from six.moves import cStringIO as StringIO
 
 from autocheck.compat import unittest
 from autocheck.status import expected_failure, ok, error, fail, skip, unexpected_success
