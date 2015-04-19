@@ -3,6 +3,8 @@
 #=============================================================================
 #   gitignore.py --- Test files for if git ignores them
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
 import glob
 import os
 

@@ -3,9 +3,12 @@
 #=============================================================================
 #   growler.py --- Growl notifier
 #=============================================================================
-from os.path import abspath, dirname, join, exists
+from __future__ import print_function, unicode_literals
+
+from os.path import dirname, join
 
 from gntp.notifier import GrowlNotifier
+
 
 class Notifier(object):
     

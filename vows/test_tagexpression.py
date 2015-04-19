@@ -36,9 +36,7 @@ def define_method(classdict, groups, test_in, test_result, test_name):
     classdict[test_name] = runTest
 
 
-class TagExpressionVowsBase(six.with_metaclass(TagExpressionVowsMeta)): pass
-
-class TagExpressionVows(TagExpressionVowsBase, unittest.TestCase):
+class TagExpressionVows(six.with_metaclass(TagExpressionVowsMeta, unittest.TestCase)):
     
     def test_always_matches_when_empty(self):
         tags = TagExpression()

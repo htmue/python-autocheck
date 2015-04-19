@@ -3,6 +3,9 @@
 #=============================================================================
 #   status.py --- Test result status
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
+
 class Status(object):
     ordered = list()
     

@@ -3,6 +3,8 @@
 #=============================================================================
 #   tags.py --- Tags and tag expressions
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
 import re
 
 from six.moves import map

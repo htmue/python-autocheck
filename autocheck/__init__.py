@@ -3,6 +3,9 @@
 #=============================================================================
 #   __init__.py --- 
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
+
 try:
     from logging.config import dictConfig
 except ImportError:

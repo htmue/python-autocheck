@@ -3,7 +3,7 @@
 #=============================================================================
 #   db.py --- Tests database
 #=============================================================================
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 import datetime
 import functools
@@ -18,6 +18,8 @@ from contextlib import contextmanager
 import six
 
 from .status import Status, ok
+
+
 try:
     import pytz
 except ImportError:
@@ -223,9 +225,9 @@ class Database(object):
     def add_result(self, cursor, test_object, started, finished, status):
         test = self.get_or_create_test(test_object, cursor=cursor)
         cursor.execute('INSERT INTO result(run_id,name,started,finished,status) VALUES (?,?,?,?,?)',
-            (self.current_run_id, test['name'], started, finished, status))
-        runs = test['runs'] + 1
-        average_time = test['average_time']
+            (self.current_run_id, test[str('name')], started, finished, status))
+        runs = test[str('runs')] + 1
+        average_time = test[str('average_time')]
         if status == ok.key:
             if average_time is None:
                 average_time = finished - started
@@ -250,7 +252,7 @@ class Database(object):
     
     @with_cursor
     def total_runs_by_test_name(self, cursor, name):
-        return self.get_test(name, cursor=cursor)['runs']
+        return self.get_test(name, cursor=cursor)[str('runs')]
     
     @with_cursor
     def get_result_count(self, cursor, run_id, status=None):
@@ -335,7 +337,7 @@ class Database(object):
     def source_has_changed(self, cursor, test_object):
         new_hash = source_hash(test_object)
         try:
-            return self.get_test(str(test_object), cursor=cursor)['hash'] != new_hash
+            return self.get_test(str(test_object), cursor=cursor)[str('hash')] != new_hash
         except TestDoesNotExist:
             return True
     
@@ -415,12 +417,12 @@ def convert_timedelta(s):
     return datetime.timedelta(seconds=float(s))
 
 sqlite3.register_adapter(datetime.timedelta, adapt_timedelta)
-sqlite3.register_converter('timedelta', convert_timedelta)
+sqlite3.register_converter(str('timedelta'), convert_timedelta)
 
 def convert_boolean(s):
     return bool(int(s))
 
-sqlite3.register_converter('boolean', convert_boolean)
+sqlite3.register_converter(str('boolean'), convert_boolean)
 
 #.............................................................................
 #   db.py

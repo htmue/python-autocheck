@@ -3,12 +3,15 @@
 #=============================================================================
 #   testrunner.py --- Running tests
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
 import datetime
 import logging
 import sys
 import time
+from io import StringIO
 
-from six.moves import map, cStringIO as StringIO
+from six.moves import map
 
 from . import status
 from .colorizer import ColourWritelnDecorator, ColourScheme

@@ -3,9 +3,13 @@
 #=============================================================================
 #   tracing.py --- Debug tracing support
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
 import functools
 import logging
 import types
+
+import six
 
 
 trace = logging.getLogger(__name__)
@@ -33,8 +37,8 @@ class MetaTracer(type):
                     classdict[f] = tracing(m, '%s.%s' % (classname, f), log=log.debug)
         return type.__new__(self, classname, bases, classdict)
 
-class Tracer(object):
-    __metaclass__ = MetaTracer
+class Tracer(six.with_metaclass(MetaTracer)):
+    pass
 
 def setLevel(level):
     trace.setLevel(level)

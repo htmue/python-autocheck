@@ -3,6 +3,8 @@
 #=============================================================================
 #   filtersuite.py --- Filter test suites
 #=============================================================================
+from __future__ import print_function, unicode_literals
+
 from operator import methodcaller
 
 from .compat import unittest

@@ -3,13 +3,15 @@
 #=============================================================================
 #   test_testrunner.py --- TestResult vows
 #=============================================================================
+from __future__ import unicode_literals
+
 import datetime
 import sys
 from functools import partial
 
 import mock
 from should_dsl import should, should_not
-from six.moves import cStringIO as StringIO
+from io import StringIO
 
 from autocheck.compat import unittest
 from autocheck.status import expected_failure, ok, error, fail, skip, unexpected_success
