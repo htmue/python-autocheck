@@ -8,10 +8,13 @@ from __future__ import print_function
 import os
 import signal
 import sys
+import time
 
-from autorunner import AutocheckObserver
-from db import Database
-from testrunner import TestRunner, TestProgram
+from watchdog.observers.fsevents import FSEventsObserver as Observer
+
+from .autorunner import AutocheckEventHandler
+from .db import Database
+from .testrunner import TestRunner, TestProgram
 
 
 class Unbuffered:
@@ -37,16 +40,30 @@ def single(args):
 
 def autocheck(args):
     handle_term()
-    root = AutocheckObserver('.', args, database=Database())
+    event_handler = AutocheckEventHandler('.', args, database=Database())
+    try:
+        event_handler.run_tests()
+    except KeyboardInterrupt:
+        pass
+    observer = Observer()
+    observer.schedule(event_handler, '.', recursive=True)
+    observer.start()
     while True:
         try:
-            root.loop()
+            time.sleep(1)
         except KeyboardInterrupt:
-            if not root.kill_child():
+            if not event_handler.kill_child():
                 print('Got signal, exiting.', file=sys.stderr)
+                observer.stop()
                 break
+    observer.join()
 
 def main(args=sys.argv):
+    import resource
+    try:
+        resource.setrlimit(resource.RLIMIT_NOFILE, (4096, -1))
+    except Exception, e:
+        print(repr(e))
     if '--once' in args:
         if args[1] == '-m' and args[2] in ('autocheck', 'autocheck.main'):
             args[1:3] = []
@@ -58,10 +75,13 @@ def main(args=sys.argv):
             print('{time:f} {runs: >8}\t{suite}.{test}'.format(**test))
     elif '--stats' in args:
         database = Database()
+        total_time = 0.0
         for suite in database.stats_grouped():
             print('{time:f} {suite}'.format(**suite))
+            total_time += suite['time']
             for test in suite['tests']:
                 print('\t{time:f} {runs: >8}\t{test}'.format(**test))
+        print('total: {:f}'.format(total_time))
     else:
         autocheck(args)
 

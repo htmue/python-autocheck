@@ -3,18 +3,21 @@
 #=============================================================================
 #   autorunner.py --- Run tests automatically
 #=============================================================================
+from __future__ import print_function
+
 import os
-import re
 import subprocess
 import threading
 
-from observer.gitignore import GitIgnore
-from observer.tree import TreeObserver
+from watchdog.events import RegexMatchingEventHandler
+from watchdog.utils import has_attribute, unicode_paths
+
+from .gitignore import GitIgnore
 
 
-DEFAULT_FILEPATTERN = re.compile(r'.*\.(py|txt|yaml|sql|html|js|css|feature)$')
+DEFAULT_FILEPATTERN = r'.*\.(py|txt|yaml|sql|html|js|css|feature|xml)$'
 
-class AutocheckObserver(TreeObserver):
+class AutocheckEventHandler(RegexMatchingEventHandler):
     
     def __init__(self, dir, args, filepattern=DEFAULT_FILEPATTERN, database=None):
         self._lock = threading.Lock()
@@ -27,7 +30,8 @@ class AutocheckObserver(TreeObserver):
             if arg.startswith('--python='):
                 self.args = [arg.split('=', 1)[1]] + self.args
         self.db = database
-        super(AutocheckObserver, self).__init__(dir, filepattern, GitIgnore(dir))
+        self.gitignore = GitIgnore(dir)
+        super(AutocheckEventHandler, self).__init__(regexes=[filepattern], ignore_directories=False, case_sensitive=False)
     
     def is_django(self):
         if os.path.exists('manage.py'):
@@ -35,7 +39,19 @@ class AutocheckObserver(TreeObserver):
                 for line in manage:
                     if 'DJANGO_SETTINGS_MODULE' in line:
                         return True
-    
+
+    def dispatch(self, event):
+        paths = []
+        if has_attribute(event, 'dest_path'):
+            paths.append(unicode_paths.decode(event.dest_path))
+        if event.src_path:
+            paths.append(unicode_paths.decode(event.src_path))
+
+        if any(self.gitignore.match(p) for p in paths):
+            return
+        
+        super(AutocheckEventHandler, self).dispatch(event)
+
     @property
     def child(self):
         with self._lock:
@@ -52,6 +68,7 @@ class AutocheckObserver(TreeObserver):
             return True
     
     def run_tests(self):
+        print(' '.join(self.args))
         self.child = subprocess.Popen(self.args, close_fds=True)
         self.child.wait()
         returncode = self.child.returncode
@@ -62,8 +79,8 @@ class AutocheckObserver(TreeObserver):
             return self.db.should_run_again()
         finally:
             self.db.close()
-    
-    def action(self, entries):
+
+    def on_any_event(self, event):
         while self.run_tests():
             pass
 
