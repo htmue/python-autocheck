@@ -9,8 +9,10 @@ import datetime
 import logging
 import sys
 import time
+from io import BytesIO
 
-from six.moves import map, cStringIO as StringIO
+import six
+from six.moves import map
 
 from . import status
 from .colorizer import ColourWritelnDecorator, ColourScheme
@@ -226,11 +228,20 @@ class TestResult(unittest.TestResult):
     def _setupStdout(self):
         if self.buffer:
             if self._stderr_buffer is None:
-                self._stderr_buffer = StringIO()
-                self._stdout_buffer = StringIO()
+                self._stderr_buffer = UTF8StringIO()
+                self._stdout_buffer = UTF8StringIO()
             sys.stdout = self._stdout_buffer
             sys.stderr = self._stderr_buffer
 
+
+class UTF8StringIO(BytesIO):
+    
+    def write(self, s):
+        if not isinstance(s, six.string_types):
+            s = six.text_type(s)
+        if isinstance(s, six.text_type):
+            s = s.encode('utf-8')
+        super(UTF8StringIO, self).write(s)
 
 
 class TestRunner(object):

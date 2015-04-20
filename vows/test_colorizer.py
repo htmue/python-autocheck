@@ -5,9 +5,10 @@
 #=============================================================================
 from __future__ import unicode_literals
 
+from io import StringIO
+
 import termstyle
 from should_dsl import should
-from six.moves import cStringIO as StringIO
 
 from autocheck.colorizer import ColourWritelnDecorator, ColourDecorator, ColourScheme
 from autocheck.compat import unittest

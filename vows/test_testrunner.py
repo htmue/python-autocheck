@@ -8,10 +8,10 @@ from __future__ import unicode_literals
 import datetime
 import sys
 from functools import partial
+from io import StringIO
 
 import mock
-from should_dsl import should, should_not
-from six.moves import cStringIO as StringIO
+from should_dsl import should_not
 
 from autocheck.compat import unittest
 from autocheck.status import expected_failure, ok, error, fail, skip, unexpected_success
@@ -159,7 +159,6 @@ class DatabaseTestRunnerVows(TestTestCase):
         constructor = partial(TestRunner, now_function=now_function, stream=self.stream)
         
         constructor |should_not| throw(TypeError)
-
 
 #.............................................................................
 #   test_testrunner.py
