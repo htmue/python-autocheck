@@ -5,12 +5,15 @@
 #=============================================================================
 from __future__ import print_function, unicode_literals
 
+import operator
+from functools import reduce
+
 from .compat import unittest
 
 
 def tag(*tags):
     def decorator(test_item):
-        test_item.__autocheck_tags__ = set(tags)
+        test_item.__autocheck_tags__ = get_tags(test_item) | set(tags)
         return test_item
     return decorator
 
@@ -19,13 +22,24 @@ def add_tags(test_item, tags):
     return tag(*all_tags)(test_item)
 
 def get_tags(test_item):
-    if isinstance(test_item, unittest.TestCase):
-        try:
-            return test_item.__autocheck_tags__
-        except AttributeError:
-            test_item = getattr(test_item, test_item._testMethodName)
-    return getattr(test_item, '__autocheck_tags__', set())
-
+    tags = set()
+    try:
+        tags |= test_item.__autocheck_tags__
+    except AttributeError:
+        pass
+    try:
+        test_item = getattr(test_item, test_item._testMethodName)
+    except AttributeError:
+        pass
+    try:
+        test_item.__mro__
+    except AttributeError:
+        pass
+    else:
+        tags = reduce(operator.__or__,
+            (getattr(cls, '__autocheck_tags__', set()) for cls in test_item.__mro__), tags)
+    tags |= getattr(test_item, '__autocheck_tags__', set())
+    return tags
 
 #.............................................................................
 #   tags.py

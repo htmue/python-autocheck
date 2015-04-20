@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # Created by Hans-Thomas on 2011-06-01.
 #=============================================================================
-#   tags.py --- Tags and tag expressions
+#   tagexpression.py --- Tags and tag expressions
 #=============================================================================
 from __future__ import print_function, unicode_literals
 
@@ -117,4 +117,4 @@ class OrNode(object):
         return False
 
 #.............................................................................
-#   tags.py
+#   tagexpression.py
