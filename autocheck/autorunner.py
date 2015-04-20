@@ -12,6 +12,7 @@ import threading
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
 
+from .contrib.django import is_django
 from .gitignore import GitIgnore
 
 
@@ -22,10 +23,23 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
     def __init__(self, dir, args, filepattern=DEFAULT_FILEPATTERN, database=None):
         self._lock = threading.Lock()
         self.child = None
-        self.args = args + ['--once']
+        self.args = args
         if is_django():
-            os.environ['DJANGO_SETTINGS_MODULE'] = 'test_settings'
-            self.args[0:1] = ['./manage.py', 'autocheck']
+            settings = None
+            for i, arg in enumerate(args[1:]):
+                if arg.startswith('--settings'):
+                    if arg.startswith('--settings='):
+                        settings = arg.split('=', 1)[0]
+                    else:
+                        settings = arg[i+1]
+                    break
+            if not settings and os.path.exists('test_settings.py'):
+                settings = 'test_settings'
+            if settings:
+                os.environ['DJANGO_SETTINGS_MODULE'] = settings
+            self.args[0:1] = ['./manage.py', 'test']
+        else:
+            self.args = args + ['--once']
         for arg in args:
             if arg.startswith('--python='):
                 self.args = [arg.split('=', 1)[1]] + self.args
@@ -75,18 +89,6 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
     def on_any_event(self, event):
         while self.run_tests():
             pass
-
-
-def is_django():
-    if os.path.exists('manage.py'):
-        with open('manage.py') as manage:
-            for line in manage:
-                if 'DJANGO_SETTINGS_MODULE' in line:
-                    try:
-                        import django
-                    except ImportError:
-                        return
-                    return True
 
 #.............................................................................
 #   autorunner.py

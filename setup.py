@@ -22,8 +22,6 @@ setup(
     packages=['autocheck',
         'autocheck.contrib',
         'autocheck.contrib.django',
-        'autocheck.contrib.django.management',
-        'autocheck.contrib.django.management.commands',
     ],
     package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
     scripts=['bin/autocheck'],
