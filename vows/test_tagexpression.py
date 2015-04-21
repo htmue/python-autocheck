@@ -13,7 +13,8 @@ from autocheck.compat import unittest
 from autocheck.tagexpression import TagExpression, TagNode, TrueNode, FalseNode, NegationNode, AndNode, OrNode
 
 
-test_examples = yaml.load(open(os.path.splitext(__file__)[0] + '.yaml'))
+with open(os.path.splitext(__file__)[0] + '.yaml') as f:
+    test_examples = yaml.load(f)
 
 
 class TagExpressionVowsMeta(type):
