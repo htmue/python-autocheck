@@ -23,7 +23,7 @@ else:
 
 setup(
     name='autocheck',
-    version='0.2.4',
+    version='0.2.5',
     description='Improved unittest test runner',
     author='Hans-Thomas Mueller',
     author_email='htmue@mac.com',
