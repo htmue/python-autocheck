@@ -3,15 +3,16 @@
 #=============================================================================
 #   gitignore.py --- Test files for if git ignores them
 #=============================================================================
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import glob
+import logging
 import os
 
-from .logger import Logger
 
+log = logging.getLogger(__name__)
 
-class GitIgnore(Logger):
+class GitIgnore(object):
     
     def __init__(self, root):
         self.root = os.path.abspath(root)
@@ -24,9 +25,9 @@ class GitIgnore(Logger):
             matchers = self._matchers[dir] = self._make_matchers(dir)
         for matcher in matchers:
             if matcher(path):
-                self.log.debug('_match:[%s][%s] => True', dir, path)
+                log.debug('_match:[%s][%s] => True', dir, path)
                 return True
-        self.log.debug('_match:[%s][%s] => False', dir, path)
+        log.debug('_match:[%s][%s] => False', dir, path)
         return False
     
     def _make_matchers(self, dir, gitignore=None):
@@ -50,7 +51,7 @@ class GitIgnore(Logger):
                 continue
             if not line:
                 continue
-            self.log.debug('%s: %s', gitignore, line)
+            log.debug('%s: %s', gitignore, line)
             yield self._make_matcher_from_line(dir, line)
     
     def _make_matcher_from_line(self, dir, line):
@@ -68,16 +69,16 @@ class GitIgnore(Logger):
                 return os.path.join(os.path.dirname(fullpath), line)
         def matcher(path):
             fullpath = os.path.join(dir, path)
-            self.log.debug('fullpath: %r', fullpath)
+            log.debug('fullpath: %r', fullpath)
             pattern = makepattern(fullpath)
-            self.log.debug('globbing: %r', pattern)
+            log.debug('globbing: %r', pattern)
             globs = glob.glob(pattern)
-            self.log.debug('globs: %s', globs)
+            log.debug('globs: %s', globs)
             if isdir:
                 for ignoredir in globs:
                     if not os.path.isdir(ignoredir):
                         continue
-                    self.log.debug('%s %s %s', os.path.commonprefix((fullpath, ignoredir)), fullpath, ignoredir)
+                    log.debug('%s %s %s', os.path.commonprefix((fullpath, ignoredir)), fullpath, ignoredir)
                     if os.path.commonprefix((fullpath, ignoredir)) == ignoredir:
                         return True
                 return False
