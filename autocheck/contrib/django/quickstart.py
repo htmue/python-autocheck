@@ -46,6 +46,8 @@ Original code and docstring: https://gist.github.com/NetAngels/1044215
 
 We use sqlitebck: https://pypi.python.org/pypi/sqlitebck instead of apsw.
 """
+from __future__ import absolute_import, unicode_literals
+
 from django.db import connections
 
 

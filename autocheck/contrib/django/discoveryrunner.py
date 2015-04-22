@@ -3,12 +3,15 @@
 #=============================================================================
 #   discoveryrunner.py --- Django test suite runner
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 from django.test.runner import DiscoverRunner, reorder_suite
 
+from ...db import Database
+from ...filtersuite import filter_suite
+from ...tagexpression import TagExpression
+from ...testrunner import TestRunner
 from .quickstart import QuickstartMixin
-from autocheck.db import Database
-from autocheck.tagexpression import TagExpression
-from autocheck.testrunner import TestRunner
 
 
 class TestSuiteRunner(QuickstartMixin, DiscoverRunner):
@@ -25,6 +28,7 @@ class TestSuiteRunner(QuickstartMixin, DiscoverRunner):
             if self.run_tags is None:
                 self.run_tags = TagExpression()
             self.run_tags.parse_and_add(tag)
+        self.database = Database()
 
     @classmethod
     def add_arguments(cls, parser):
@@ -40,17 +44,21 @@ class TestSuiteRunner(QuickstartMixin, DiscoverRunner):
         suite = super(TestSuiteRunner, self).build_suite(test_labels, extra_tests, **kwargs)
         if self.run_tags is not None:
             suite = self.run_tags.filter_suite(suite)
+        suite, self.full_suite = filter_suite(suite, self.database)
         return reorder_suite(suite, self.reorder_by, self.reverse)
 
     def run_suite(self, suite, **kwargs):
         resultclass = self.get_resultclass()
-        return self.test_runner(
+        result = self.test_runner(
             buffer=self.buffer,
             verbosity=self.verbosity,
             failfast=self.failfast,
             resultclass=resultclass,
-            database=Database(),
+            database=self.database,
+            full_suite=self.full_suite,
         ).run(suite)
+        self.database.close()
+        return result
 
 #.............................................................................
 #   discoveryrunner.py

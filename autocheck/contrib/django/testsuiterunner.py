@@ -3,13 +3,15 @@
 #=============================================================================
 #   testsuiterunner.py --- Django test suite runner
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 from optparse import make_option
 
 from django.test.simple import DjangoTestSuiteRunner
 
+from ...db import Database
+from ...testrunner import TestRunner, TestProgram
 from .quickstart import QuickstartMixin
-from autocheck.db import Database
-from autocheck.testrunner import TestRunner, TestProgram
 
 
 class TestSuiteRunner(QuickstartMixin, DjangoTestSuiteRunner):
@@ -54,7 +56,7 @@ class TestSuiteRunner(QuickstartMixin, DjangoTestSuiteRunner):
         if discover:
             argv.append('discover')
             opts.update(self.discover_opts)
-        for key, value in self.options.items():
+        for key, value in list(self.options.items()):
             if key in opts:
                 option = opts[key]
                 if value is True:
