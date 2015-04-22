@@ -3,6 +3,8 @@
 #=============================================================================
 #   test_filtersuite.py --- FilterSuite vows
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 import os.path
 import re
 from functools import partial
@@ -55,7 +57,7 @@ class FilterSuiteTestCase(unittest.TestCase):
     
     def add_tests(self, name, defs):
         class Test(self.Test): pass
-        Test.__name__ = 'Test_' + name
+        Test.__name__ = str('Test_' + name)
         for test_name in defs:
             Test.add_test(test_name)
         return unittest.defaultTestLoader.loadTestsFromTestCase(Test)

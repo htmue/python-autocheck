@@ -3,6 +3,8 @@
 #=============================================================================
 #   extra_matchers.py --- Should-DSL extra matchers
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 from should_dsl import matcher
 from six.moves import zip_longest
 

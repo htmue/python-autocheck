@@ -3,8 +3,10 @@
 #=============================================================================
 #   test_extra_matchers.py ---
 #=============================================================================
-import mock
-from should_dsl import should, should_not
+from __future__ import absolute_import
+
+from should_dsl import should
+from six.moves import range
 
 from .extra_matchers import EachEqual
 from autocheck.compat import unittest

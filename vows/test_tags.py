@@ -3,6 +3,8 @@
 #=============================================================================
 #   test_tags.py --- Tag support vows
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 from should_dsl import should
 from six.moves import map
 

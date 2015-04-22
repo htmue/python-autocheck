@@ -3,10 +3,13 @@
 #=============================================================================
 #   test_db.py --- Tests database vows
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 import datetime
 from functools import partial
 
 from should_dsl import should, should_not
+from six.moves import range
 
 from autocheck.compat import unittest
 from autocheck.db import Database, timedelta_to_float, RunDoesNotExist, ResultDoesNotExist

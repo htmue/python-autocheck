@@ -3,7 +3,7 @@
 #=============================================================================
 #   db.py --- Tests database
 #=============================================================================
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 
 import datetime
 import functools
@@ -16,6 +16,7 @@ import sqlite3
 from contextlib import contextmanager
 
 import six
+from six.moves import zip
 
 from .status import Status, ok
 
@@ -199,7 +200,7 @@ class Database(object):
         run = cursor.fetchone()
         if run is None:
             raise RunDoesNotExist(run_id)
-        return run
+        return Row(run)
     
     @with_cursor
     def get_test(self, cursor, name):
@@ -207,7 +208,7 @@ class Database(object):
         test = cursor.fetchone()
         if test is None:
             raise TestDoesNotExist(name)
-        return test
+        return Row(test)
     
     @with_cursor
     def get_or_create_test(self, cursor, test_object):
@@ -225,9 +226,9 @@ class Database(object):
     def add_result(self, cursor, test_object, started, finished, status):
         test = self.get_or_create_test(test_object, cursor=cursor)
         cursor.execute('INSERT INTO result(run_id,name,started,finished,status) VALUES (?,?,?,?,?)',
-            (self.current_run_id, test[str('name')], started, finished, status))
-        runs = test[str('runs')] + 1
-        average_time = test[str('average_time')]
+            (self.current_run_id, test['name'], started, finished, status))
+        runs = test['runs'] + 1
+        average_time = test['average_time']
         if status == ok.key:
             if average_time is None:
                 average_time = finished - started
@@ -248,11 +249,11 @@ class Database(object):
         result = cursor.fetchone()
         if result is None:
             raise ResultDoesNotExist(name)
-        return result
+        return Row(result)
     
     @with_cursor
     def total_runs_by_test_name(self, cursor, name):
-        return self.get_test(name, cursor=cursor)[str('runs')]
+        return self.get_test(name, cursor=cursor)['runs']
     
     @with_cursor
     def get_result_count(self, cursor, run_id, status=None):
@@ -337,7 +338,7 @@ class Database(object):
     def source_has_changed(self, cursor, test_object):
         new_hash = source_hash(test_object)
         try:
-            return self.get_test(str(test_object), cursor=cursor)[str('hash')] != new_hash
+            return self.get_test(str(test_object), cursor=cursor)['hash'] != new_hash
         except TestDoesNotExist:
             return True
     
@@ -394,10 +395,18 @@ class Database(object):
     def utcnow(self):
         return self.to_utc(datetime.datetime.utcnow())
 
+class Row(object):
+    
+    def __init__(self, row):
+        self._row = row
+    
+    def __getitem__(self, key):
+        return self._row[str(key)]
+
 def source_hash(test_object):
     test_method = getattr(test_object, test_object._testMethodName)
     try:
-        source = test_method.im_self.getsource()
+        source = test_method.__self__.getsource()
     except AttributeError:
         source = inspect.getsource(test_method)
     if six.PY3:

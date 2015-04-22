@@ -3,12 +3,10 @@
 #=============================================================================
 #   tags.py --- Add tags to tests
 #=============================================================================
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, unicode_literals
 
 import operator
 from functools import reduce
-
-from .compat import unittest
 
 
 def tag(*tags):

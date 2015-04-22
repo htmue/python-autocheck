@@ -3,6 +3,8 @@
 #=============================================================================
 #   test_tagexpression.py --- Tag expression vows
 #=============================================================================
+from __future__ import absolute_import, unicode_literals
+
 import os.path
 
 import six
@@ -33,7 +35,7 @@ def define_method(classdict, groups, test_in, test_result, test_name):
         for group in groups:
             tags.parse_and_add(group)
         tags.match(test_in) |should| be(test_result)
-    runTest.__name__ = test_name
+    runTest.__name__ = str(test_name)
     classdict[test_name] = runTest
 
 
