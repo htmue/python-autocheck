@@ -80,18 +80,15 @@ Tests
 
 [![Build Status](https://travis-ci.org/htmue/python-autocheck.svg)](https://travis-ci.org/htmue/python-autocheck)
 
-Install test requirements:
-
-    $ pip install .
-    $ pip install -r requirements/test.txt
-
-For Python-2.6 additionaly:
-
-    $ pip install -r requirements/python-2.6.txt
-
 Run in project directory:
 
-    $ PYTHONPATH=. ./bin/autocheck discover -v --once
+    $ python setup.py test
+
+Run tests using our own test runner:
+
+    $ pip install -e .
+    $ pip install -r requirements/test.txt
+    $ ./bin/autocheck discover -v --once -s ./vows -t .
 
 Tested against Python-2.6, 2.7, 3.3, 3.4, PyPy 2 and 3.
 

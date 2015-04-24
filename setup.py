@@ -11,7 +11,7 @@ from setuptools import setup
 install_requires=['PyYAML', 'watchdog', 'python-termstyle', 'six']
 
 if sys.version_info[:2] == (2, 6):
-    install_requires.append('unittest2')
+    install_requires.extend(('argparse', 'unittest2'))
 
 if spawn.find_executable('pandoc'):
     extra_setup = dict(
@@ -35,6 +35,8 @@ setup(
     package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
     scripts=['bin/autocheck'],
     install_requires=install_requires,
+    test_suite='vows',
+    tests_require=['mock', 'should-dsl'],
     **extra_setup
 )
 
