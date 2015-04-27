@@ -53,7 +53,7 @@ def autocheck(args):
     observer.start()
     while True:
         try:
-            time.sleep(1)
+            time.sleep(111)
         except KeyboardInterrupt:
             if event_handler.child is None:
                 print('Got signal, exiting.', file=sys.stderr)
