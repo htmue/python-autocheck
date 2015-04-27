@@ -5,9 +5,12 @@
 #=============================================================================
 from __future__ import print_function, unicode_literals
 
+import hashlib
 import os
+import shelve
 import subprocess
 import threading
+from contextlib import closing
 
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
@@ -48,9 +51,9 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         for key in ('dest_path', 'src_path'):
             if has_attribute(event, key):
                 path = unicode_paths.decode(getattr(event, key))
-                if os.path.isfile(path):
+                if not os.path.isdir(path):
                     paths.add(os.path.relpath(path))
-        if paths - self.get_git_ignored():
+        if set(self.filter_paths(paths - self.get_git_ignored())):
             super(AutocheckEventHandler, self).dispatch(event)
     
     def get_git_ignored(self):
@@ -59,6 +62,25 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         except subprocess.CalledProcessError:
             output = ''
         return frozenset(map(unicode_paths.decode, output.splitlines()))
+    
+    def filter_paths(self, paths):
+        with closing(shelve.open('.autocheck.fileinfo')) as fileinfo_db:
+            for path in paths:
+                if path.startswith('.autocheck.'):
+                    continue
+                if self.file_changed(path, fileinfo_db):
+                    yield path
+    
+    def file_changed(self, path, fileinfo_db):
+        old_stats, old_sha1 = fileinfo_db.setdefault(path, (None, None))
+        if not os.path.exists(path):
+            del fileinfo_db[path]
+            return True
+        new_stats = os.stat(path)
+        if old_stats != new_stats:
+            new_sha1 = file_sha1(path)
+            fileinfo_db[path] = new_stats, new_sha1
+            return old_sha1 != new_sha1
     
     @property
     def child(self):
@@ -92,6 +114,14 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         while self.run_tests():
             pass
 
+def file_sha1(path):
+    sha1 = hashlib.sha1()
+    with open(path, 'rb') as f:
+        while True:
+            data = f.read(4096)
+            if not data:
+                return sha1.hexdigest()
+            sha1.update(data)
 
 def is_django():
     if os.path.exists('manage.py'):
