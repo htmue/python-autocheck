@@ -12,8 +12,6 @@ import threading
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
 
-from .gitignore import GitIgnore
-
 
 DEFAULT_FILEPATTERN = r'.*\.(py|txt|yaml|sql|html|js|css|feature|xml)$'
 
@@ -43,19 +41,24 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
             if arg.startswith('--python='):
                 self.args = [arg.split('=', 1)[1]] + self.args
         self.db = database
-        self.gitignore = GitIgnore(dir)
         super(AutocheckEventHandler, self).__init__(regexes=[filepattern], ignore_directories=True, case_sensitive=False)
     
     def dispatch(self, event):
-        paths = []
-        if has_attribute(event, 'dest_path'):
-            paths.append(unicode_paths.decode(event.dest_path))
-        elif event.src_path:
-            paths.append(unicode_paths.decode(event.src_path))
-        
-        if any(self.gitignore.match(p) for p in paths):
-            return
-        super(AutocheckEventHandler, self).dispatch(event)
+        paths = set()
+        for key in ('dest_path', 'src_path'):
+            if has_attribute(event, key):
+                path = unicode_paths.decode(getattr(event, key))
+                if os.path.isfile(path):
+                    paths.add(os.path.relpath(path))
+        if paths - self.get_git_ignored():
+            super(AutocheckEventHandler, self).dispatch(event)
+    
+    def get_git_ignored(self):
+        try:
+            output = subprocess.check_output('git ls-files --others --ignored --exclude-standard'.split())
+        except subprocess.CalledProcessError:
+            output = ''
+        return frozenset(map(unicode_paths.decode, output.splitlines()))
     
     @property
     def child(self):
