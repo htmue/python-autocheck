@@ -5,34 +5,29 @@
 #=============================================================================
 from __future__ import absolute_import, unicode_literals
 
-import os.path
 
+django = None
 
 try:
-    from .discoveryrunner import TestSuiteRunner
+    import django
 except ImportError:
-    try:
-        from .testsuiterunner import TestSuiteRunner
-    except ImportError:
-        TestSuiteRunner = None
-
-if TestSuiteRunner is None:
-    def is_django():
-        return False
+    pass
 else:
+    try:
+        from .discoveryrunner import TestSuiteRunner
+    except ImportError:
+        try:
+            from .testsuiterunner import TestSuiteRunner
+        except ImportError:
+            pass
+
+if django is not None:
     try:
         from south.management.commands import patch_for_test_db_setup
     except ImportError:
         pass
     else:
         patch_for_test_db_setup()
-
-    def is_django():
-        if os.path.exists('manage.py'):
-            with open('manage.py') as manage:
-                for line in manage:
-                    if 'DJANGO_SETTINGS_MODULE' in line:
-                        return True
 
 #.............................................................................
 #   __init__.py

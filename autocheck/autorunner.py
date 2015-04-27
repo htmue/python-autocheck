@@ -12,7 +12,6 @@ import threading
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
 
-from .contrib.django import is_django
 from .gitignore import GitIgnore
 
 
@@ -89,6 +88,18 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
     def on_any_event(self, event):
         while self.run_tests():
             pass
+
+
+def is_django():
+    if os.path.exists('manage.py'):
+        with open('manage.py') as manage:
+            for line in manage:
+                if 'DJANGO_SETTINGS_MODULE' in line:
+                    try:
+                        import django
+                    except ImportError:
+                        return False
+                    return True
 
 #.............................................................................
 #   autorunner.py
