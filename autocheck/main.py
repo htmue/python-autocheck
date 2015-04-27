@@ -11,7 +11,7 @@ import sys
 import time
 from threading import Thread
 
-from watchdog.observers.fsevents import FSEventsObserver as Observer
+from watchdog.observers import Observer
 
 from .autorunner import AutocheckEventHandler
 from .db import Database
