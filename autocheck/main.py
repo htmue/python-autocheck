@@ -9,6 +9,7 @@ import os
 import signal
 import sys
 import time
+from threading import Thread
 
 from watchdog.observers.fsevents import FSEventsObserver as Observer
 
@@ -41,8 +42,10 @@ def single(args):
 def autocheck(args):
     handle_term()
     event_handler = AutocheckEventHandler('.', args, database=Database())
+    first_run = Thread(target=event_handler.run_tests)
     try:
-        event_handler.run_tests()
+        first_run.start()
+        first_run.join()
     except KeyboardInterrupt:
         pass
     observer = Observer()
@@ -52,7 +55,7 @@ def autocheck(args):
         try:
             time.sleep(1)
         except KeyboardInterrupt:
-            if not event_handler.kill_child():
+            if event_handler.child is None:
                 print('Got signal, exiting.', file=sys.stderr)
                 observer.stop()
                 break

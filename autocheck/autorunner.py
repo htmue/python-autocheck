@@ -92,11 +92,6 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         with self._lock:
             self._child = child
     
-    def kill_child(self):
-        child = self.child
-        if child is not None:
-            return True
-    
     def run_tests(self):
         print(' '.join(self.args))
         self.child = subprocess.Popen(self.args, close_fds=True)
