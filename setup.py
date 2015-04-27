@@ -4,22 +4,14 @@
 #   setup.py --- Install script
 #=============================================================================
 import sys
-from distutils import spawn
-from setuptools import setup
+
+from setuptools import setup, find_packages
 
 
 install_requires=['PyYAML', 'watchdog', 'python-termstyle', 'six']
 
 if sys.version_info[:2] == (2, 6):
     install_requires.extend(('argparse', 'unittest2'))
-
-if spawn.find_executable('pandoc'):
-    extra_setup = dict(
-        setup_requires=['setuptools-markdown'],
-        long_description_markdown_filename='README.md',        
-    )
-else:
-    extra_setup = {}
 
 setup(
     name='autocheck',
@@ -28,16 +20,12 @@ setup(
     author='Hans-Thomas Mueller',
     author_email='htmue@mac.com',
     url='https://github.com/htmue/python-autocheck',
-    packages=['autocheck',
-        'autocheck.contrib',
-        'autocheck.contrib.django',
-    ],
+    packages=find_packages(),
     package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
-    scripts=['bin/autocheck'],
+    entry_points=dict(console_scripts=['autocheck = autocheck.main:main']),
     install_requires=install_requires,
     test_suite='vows',
     tests_require=['mock', 'should-dsl'],
-    **extra_setup
 )
 
 #.............................................................................

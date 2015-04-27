@@ -1,4 +1,4 @@
 include requirements/*.txt requirements.txt
-include *.in *.md UNLICENSE
+include *.in *.rst UNLICENSE
 recursive-include autocheck *.yaml
 recursive-include vows *.yaml *.py
