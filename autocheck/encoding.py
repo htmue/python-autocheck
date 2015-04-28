@@ -8,6 +8,7 @@
 #=============================================================================
 from __future__ import absolute_import, unicode_literals
 
+import codecs
 import locale
 from io import StringIO
 
@@ -25,7 +26,7 @@ errors_fallback = 'replace'
 
 
 class ConsoleBuffer(StringIO):
-    
+
     def write(self, s):
         super(ConsoleBuffer, self).write(smart_text(s))
 
@@ -38,7 +39,8 @@ def smart_text(s, encoding=encoding, errors=errors):
             s = six.text_type(s, encoding, errors)
         except:
             if isinstance(s, Exception):
-                s = ' '.join(smart_text(arg, encoding, errors) for arg in s.args)
+                s = ' '.join(smart_text(arg, encoding, errors)
+                             for arg in s.args)
             else:
                 s = six.text_type(s, encoding, errors_fallback)
     if isinstance(s, bytes):
@@ -48,18 +50,19 @@ def smart_text(s, encoding=encoding, errors=errors):
             s = s.decode(encoding, errors_fallback)
     return s
 
+
 def smart_bytes(s, encoding=encoding, errors=errors):
     if isinstance(s, bytes):
         return s
     if not isinstance(s, six.string_types):
-        s = smart_text(s)           
-    try:         
+        s = smart_text(s)
+    try:
         s = s.encode(encoding, errors)
     except:
         s = s.encode(encoding, errors_fallback)
     return s
 
-if six.PY2:    
+if six.PY2:
     smart_str = smart_bytes
 else:
     smart_str = smart_text

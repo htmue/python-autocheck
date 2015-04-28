@@ -5,7 +5,7 @@
 #=============================================================================
 from __future__ import absolute_import
 
-from . import extra_matchers
+from . import extra_matchers  # noqa
 
 #.............................................................................
 #   __init__.py

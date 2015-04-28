@@ -14,10 +14,10 @@ except ImportError:
     pass
 else:
     try:
-        from .discoveryrunner import TestSuiteRunner
+        from .discoveryrunner import TestSuiteRunner  # noqa
     except ImportError:
         try:
-            from .testsuiterunner import TestSuiteRunner
+            from .testsuiterunner import TestSuiteRunner  # noqa
         except ImportError:
             pass
 

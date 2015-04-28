@@ -11,9 +11,12 @@ import six
 
 class MetaLogger(type):
 
-    def __new__(self, classname, bases, classdict):
-        classdict.setdefault('log', logging.getLogger('%s.%s' % (classdict['__module__'], classname)))
-        return type.__new__(self, classname, bases, classdict)
+    def __new__(cls, classname, bases, classdict):
+        classdict.setdefault('log', logging.getLogger('%s.%s' % (
+            classdict['__module__'], classname
+        )))
+        return type.__new__(cls, classname, bases, classdict)
+
 
 class Logger(six.with_metaclass(MetaLogger)):
     pass

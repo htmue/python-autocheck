@@ -13,12 +13,12 @@ from autocheck.compat import unittest
 
 
 class EachEqualMatcherTest(unittest.TestCase):
-    
+
     def test_sees_equality(self):
         matcher = EachEqual()(range(10))
         diff = list(matcher.differ(range(10)))
         diff |should| be_equal_to([])
-    
+
     def test_gets_the_differences(self):
         left = [1, 2, 3, 4]
         right = [3, 2, 1, 4]
@@ -28,7 +28,7 @@ class EachEqualMatcherTest(unittest.TestCase):
             (1, 1, 3),
             (3, 3, 1),
         ])
-    
+
     def test_gets_the_differences_with_different_len(self):
         left = [1, 2, 3]
         right = [3, 2, 1, 4]

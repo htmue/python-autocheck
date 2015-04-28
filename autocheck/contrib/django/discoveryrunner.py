@@ -16,7 +16,7 @@ from .quickstart import QuickstartMixin
 
 class TestSuiteRunner(QuickstartMixin, DiscoverRunner):
     test_runner = TestRunner
-    
+
     def __init__(self, buffer=True, tags=[], **kwargs):
         super(TestSuiteRunner, self).__init__(**kwargs)
         self.buffer = buffer
@@ -33,15 +33,19 @@ class TestSuiteRunner(QuickstartMixin, DiscoverRunner):
     @classmethod
     def add_arguments(cls, parser):
         super(TestSuiteRunner, cls).add_arguments(parser)
-        parser.add_argument('--no-buffer', action='store_false', dest='buffer', default=True,
+        parser.add_argument(
+            '--no-buffer', action='store_false', dest='buffer', default=True,
             help='Do not buffer stdout and stderr during test runs.')
-        parser.add_argument('--no-verbose', action='store_false', dest='verbose', default=True,
+        parser.add_argument(
+            '--no-verbose', action='store_false', dest='verbose', default=True,
             help='Do not run unittests verbose.')
-        parser.add_argument('--tags', metavar='TAGEXPRESSION', action='append', default=[],
+        parser.add_argument(
+            '--tags', metavar='TAGEXPRESSION', action='append', default=[],
             help='Filter tests by tag expression.')
 
     def build_suite(self, test_labels=None, extra_tests=None, **kwargs):
-        suite = super(TestSuiteRunner, self).build_suite(test_labels, extra_tests, **kwargs)
+        suite = super(TestSuiteRunner, self).build_suite(
+            test_labels, extra_tests, **kwargs)
         if self.run_tags is not None:
             suite = self.run_tags.filter_suite(suite)
         suite, self.full_suite = filter_suite(suite, self.database)

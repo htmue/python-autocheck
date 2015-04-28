@@ -9,7 +9,7 @@ and fixtures are changed much more seldom that your code and tests.  All you
 need is to make sure that your "quickstart.sqlite" database file is always up
 to date.
 
-BEWARE: Don't run this test runner on production server. It assumes that you 
+BEWARE: Don't run this test runner on production server. It assumes that you
 use only one database configured as "default", and its db engine is SQLite.
 Otherwise your tests can eat your data!
 
@@ -31,7 +31,7 @@ How to use it:
     }
 
 3. Create quickstart.sqlite:
-     
+
      ./manage.py migrate --database quickstart
 
 4. Redefine variable TEST_RUNNER in the settings.py:
@@ -66,16 +66,19 @@ class QuickstartMixin(object):
             quickstart.ensure_connection()
             connection.ensure_connection()
             sqlitebck.copy(quickstart.connection, connection.connection)
-            serialize = connection.settings_dict.get("TEST", {}).get("SERIALIZE", True)
+            serialize = connection.settings_dict.get(
+                "TEST", {}).get("SERIALIZE", True)
             if serialize:
-                connection._test_serialized_contents = connection.creation.serialize_db_to_string()
+                serialized = connection.creation.serialize_db_to_string()
+                connection._test_serialized_contents = serialized
             return 'quickstart'
         else:
             return super(QuickstartMixin, self).setup_databases(**kwargs)
 
     def teardown_databases(self, old_config, **kwargs):
         if old_config != 'quickstart':
-            super(QuickstartMixin, self).teardown_databases(old_config, **kwargs)
+            super(QuickstartMixin, self).teardown_databases(
+                old_config, **kwargs)
 
 #.............................................................................
 #   quickstart.py

@@ -8,7 +8,7 @@ import sys
 from setuptools import setup, find_packages
 
 
-install_requires=['PyYAML', 'watchdog', 'python-termstyle', 'six']
+install_requires = ['PyYAML', 'watchdog', 'python-termstyle', 'six']
 
 if sys.version_info[:2] == (2, 6):
     install_requires.extend(('argparse', 'unittest2'))
@@ -21,7 +21,8 @@ setup(
     author_email='htmue@mac.com',
     url='https://github.com/htmue/python-autocheck',
     packages=find_packages(),
-    package_data=dict(autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
+    package_data=dict(
+        autocheck=['*.yaml', 'colourschemes/*.yaml', 'images/*.png']),
     entry_points=dict(console_scripts=['autocheck = autocheck.main:main']),
     install_requires=install_requires,
     test_suite='vows',

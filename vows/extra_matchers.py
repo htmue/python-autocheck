@@ -12,21 +12,22 @@ from six.moves import zip_longest
 @matcher
 class EachEqual(object):
     name = 'each_be_equal_to'
-    
+
     def __call__(self, expected):
         self._expected = expected
         return self
-    
+
     def differ(self, given):
         for n, (left, right) in enumerate(zip_longest(given, self._expected)):
             if left != right:
                 yield n + 1, left, right
-    
+
     def match(self, given):
         diff = list(self.differ(given))
-        self.diff = '\n\t'.join('%d: %r is not equal to %r' % item for item in diff)
+        self.diff = '\n\t'.join(
+            '%d: %r is not equal to %r' % item for item in diff)
         return not diff
-    
+
     def message_for_failed_should(self):
         return 'sequences differ\n\t' + self.diff
 
@@ -34,6 +35,7 @@ class EachEqual(object):
 @matcher
 def be_equal_to():
     return (lambda x, y: x == y, '%r is %sequal to %r')
+
 
 @matcher
 def be_in():

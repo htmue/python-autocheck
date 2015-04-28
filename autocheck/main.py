@@ -18,30 +18,35 @@ from .testrunner import TestRunner, TestProgram
 
 
 class Unbuffered:
-    
+
     def __init__(self, stream):
         self.stream = stream
-    
+
     def write(self, data):
         self.stream.write(data)
         self.stream.flush()
-    
+
     def __getattr__(self, attr):
         return getattr(self.stream, attr)
+
 
 def handle_term():
     def sighandler(signum, frame):
         os.kill(os.getpid(), signal.SIGINT)
     signal.signal(signal.SIGTERM, sighandler)
 
+
 def single(args):
-    sys.stdout=Unbuffered(sys.stdout)
-    TestProgram(module=None, testRunner=TestRunner, argv=args, database=Database())
+    sys.stdout = Unbuffered(sys.stdout)
+    TestProgram(
+        module=None, testRunner=TestRunner, argv=args, database=Database())
+
 
 def autocheck(args):
     handle_term()
     event_handler = AutocheckEventHandler()
-    worker = AutocheckWorker(event_handler.queue, '.', args, database=Database())
+    worker = AutocheckWorker(
+        event_handler.queue, '.', args, database=Database())
     observer = Observer()
     observer.schedule(event_handler, '.', recursive=True)
     observer.start()
@@ -60,6 +65,7 @@ def autocheck(args):
                 break
     observer.join()
     worker.join()
+
 
 def main(args=sys.argv):
     if '--once' in args:
@@ -88,7 +94,7 @@ def main(args=sys.argv):
                     if arg.startswith('--settings='):
                         settings = arg.split('=', 1)[0]
                     else:
-                        settings = arg[i+1]
+                        settings = arg[i + 1]
                     break
             if not settings and os.path.exists('test_settings.py'):
                 settings = 'test_settings'
@@ -109,15 +115,16 @@ def is_django():
             for line in manage:
                 if 'DJANGO_SETTINGS_MODULE' in line:
                     try:
-                        import django
+                        import django  # noqa
                     except ImportError:
                         return False
                     return True
 
 if __name__ == '__main__':
     if sys.argv[0].endswith('main.py'):
-        sys.argv[0:1] = [os.path.abspath(sys.executable), '-m', 'autocheck.main']
-    
+        sys.argv[0:1] = [
+            os.path.abspath(sys.executable), '-m', 'autocheck.main']
+
     main()
 
 #.............................................................................

@@ -15,9 +15,11 @@ def tag(*tags):
         return test_item
     return decorator
 
+
 def add_tags(test_item, tags):
     all_tags = tuple(get_tags(test_item) | set(tags))
     return tag(*all_tags)(test_item)
+
 
 def get_tags(test_item):
     tags = set()
@@ -34,8 +36,10 @@ def get_tags(test_item):
     except AttributeError:
         pass
     else:
-        tags = reduce(operator.__or__,
-            (getattr(cls, '__autocheck_tags__', set()) for cls in test_item.__mro__), tags)
+        tags = reduce(operator.__or__, (
+            getattr(cls, '__autocheck_tags__', set())
+            for cls in test_item.__mro__
+        ), tags)
     tags |= getattr(test_item, '__autocheck_tags__', set())
     return tags
 
