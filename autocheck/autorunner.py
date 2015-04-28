@@ -3,15 +3,20 @@
 #=============================================================================
 #   autorunner.py --- Run tests automatically
 #=============================================================================
-from __future__ import print_function, unicode_literals
+from __future__ import absolute_import, print_function, unicode_literals
 
 import hashlib
+import operator
 import os
 import shelve
 import subprocess
 import threading
+import time
 from contextlib import closing
+from functools import partial
 
+from six.moves import map, reduce
+from six.moves.queue import Queue, Empty
 from watchdog.events import RegexMatchingEventHandler
 from watchdog.utils import has_attribute, unicode_paths
 
@@ -20,41 +25,53 @@ DEFAULT_FILEPATTERN = r'.*\.(py|txt|yaml|sql|html|js|css|feature|xml)$'
 
 class AutocheckEventHandler(RegexMatchingEventHandler):
     
-    def __init__(self, dir, args, filepattern=DEFAULT_FILEPATTERN, database=None):
-        self._lock = threading.Lock()
-        self.child = None
-        self.args = args
-        if is_django():
-            settings = None
-            for i, arg in enumerate(args[1:]):
-                if arg.startswith('--settings'):
-                    if arg.startswith('--settings='):
-                        settings = arg.split('=', 1)[0]
-                    else:
-                        settings = arg[i+1]
-                    break
-            if not settings and os.path.exists('test_settings.py'):
-                settings = 'test_settings'
-            if settings:
-                os.environ['DJANGO_SETTINGS_MODULE'] = settings
-            self.args[0:1] = ['./manage.py', 'test']
-        else:
-            self.args = args + ['--once']
-        for arg in args:
-            if arg.startswith('--python='):
-                self.args = [arg.split('=', 1)[1]] + self.args
-        self.db = database
+    def __init__(self, filepattern=DEFAULT_FILEPATTERN):
+        self.queue = Queue()
         super(AutocheckEventHandler, self).__init__(regexes=[filepattern], ignore_directories=True, case_sensitive=False)
     
-    def dispatch(self, event):
-        paths = set()
-        for key in ('dest_path', 'src_path'):
-            if has_attribute(event, key):
-                path = unicode_paths.decode(getattr(event, key))
-                if not os.path.isdir(path):
-                    paths.add(os.path.relpath(path))
-        if set(self.filter_paths(paths - self.get_git_ignored())):
-            super(AutocheckEventHandler, self).dispatch(event)
+    def on_any_event(self, event):
+        self.queue.put(event)
+
+
+class AutocheckWorker(threading.Thread):
+    
+    def __init__(self, queue, dir, args, database=None, sleep=1, timeout=1):
+        self._child_lock = threading.Lock()
+        self._should_run_lock = threading.Lock()
+        self.child = None
+        self.should_run = True
+        self.db = database
+        self.queue = queue
+        self.sleep = sleep
+        self.timeout = timeout
+        self.args = args
+        super(AutocheckWorker, self).__init__(name='autocheck-worker')
+        self.daemon = True
+    
+    def run(self):
+        self.run_tests_while_pending()
+        while self.should_run:
+            self.check_run(self.collect_events())
+    
+    def collect_events(self):
+        try:
+            yield self.queue.get(timeout=self.timeout)
+        except Empty:
+            pass
+        else:
+            time.sleep(self.sleep)
+            timeout = time.time() + self.timeout
+            while time.time() < timeout:
+                try:
+                    yield self.queue.get_nowait()
+                except Empty:
+                    break
+    
+    def check_run(self, events):
+        events = reduce(operator.__or__, map(set, map(get_file_event_paths, events)), set())
+        if events:
+            if self.filter_changed(events - self.get_git_ignored()):
+                self.run_tests_while_pending()
     
     def get_git_ignored(self):
         try:
@@ -63,15 +80,11 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
             output = ''
         return frozenset(map(unicode_paths.decode, output.splitlines()))
     
-    def filter_paths(self, paths):
+    def filter_changed(self, paths):
         with closing(shelve.open('.autocheck.fileinfo')) as fileinfo_db:
-            for path in paths:
-                if path.startswith('.autocheck.'):
-                    continue
-                if self.file_changed(path, fileinfo_db):
-                    yield path
+            return set(map(partial(self.file_changed, fileinfo_db), paths))
     
-    def file_changed(self, path, fileinfo_db):
+    def file_changed(self, fileinfo_db, path):
         old_stats, old_sha1 = fileinfo_db.setdefault(path, (None, None))
         if not os.path.exists(path):
             del fileinfo_db[path]
@@ -82,14 +95,27 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
             fileinfo_db[path] = new_stats, new_sha1
             return old_sha1 != new_sha1
     
+    def stop(self):
+        self.should_run = False
+    
+    @property
+    def should_run(self):
+        with self._should_run_lock:
+            return self._should_run
+    
+    @should_run.setter
+    def should_run(self, should_run):
+        with self._should_run_lock:
+            self._should_run = should_run
+    
     @property
     def child(self):
-        with self._lock:
+        with self._child_lock:
             return self._child
     
     @child.setter
     def child(self, child):
-        with self._lock:
+        with self._child_lock:
             self._child = child
     
     def run_tests(self):
@@ -105,9 +131,19 @@ class AutocheckEventHandler(RegexMatchingEventHandler):
         finally:
             self.db.close()
     
-    def on_any_event(self, event):
+    def run_tests_while_pending(self):
         while self.run_tests():
             pass
+        if self.queue.empty():
+            print('(waiting...)')
+
+
+def get_file_event_paths(event):
+    for key in ('dest_path', 'src_path'):
+        if has_attribute(event, key):
+            path = unicode_paths.decode(getattr(event, key))
+            if not (path.startswith('.autocheck.') or os.path.isdir(path)):
+                yield os.path.relpath(path)
 
 def file_sha1(path):
     sha1 = hashlib.sha1()
@@ -117,17 +153,6 @@ def file_sha1(path):
             if not data:
                 return sha1.hexdigest()
             sha1.update(data)
-
-def is_django():
-    if os.path.exists('manage.py'):
-        with open('manage.py') as manage:
-            for line in manage:
-                if 'DJANGO_SETTINGS_MODULE' in line:
-                    try:
-                        import django
-                    except ImportError:
-                        return False
-                    return True
 
 #.............................................................................
 #   autorunner.py

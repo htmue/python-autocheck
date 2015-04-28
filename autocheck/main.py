@@ -9,11 +9,10 @@ import os
 import signal
 import sys
 import time
-from threading import Thread
 
 from watchdog.observers import Observer
 
-from .autorunner import AutocheckEventHandler
+from .autorunner import AutocheckEventHandler, AutocheckWorker
 from .db import Database
 from .testrunner import TestRunner, TestProgram
 
@@ -41,25 +40,26 @@ def single(args):
 
 def autocheck(args):
     handle_term()
-    event_handler = AutocheckEventHandler('.', args, database=Database())
-    first_run = Thread(target=event_handler.run_tests)
-    try:
-        first_run.start()
-        first_run.join()
-    except KeyboardInterrupt:
-        pass
+    event_handler = AutocheckEventHandler()
+    worker = AutocheckWorker(event_handler.queue, '.', args, database=Database())
     observer = Observer()
     observer.schedule(event_handler, '.', recursive=True)
     observer.start()
+    try:
+        worker.start()
+    except KeyboardInterrupt:
+        pass
     while True:
         try:
             time.sleep(111)
         except KeyboardInterrupt:
-            if event_handler.child is None:
+            if worker.child is None:
                 print('Got signal, exiting.', file=sys.stderr)
                 observer.stop()
+                worker.stop()
                 break
     observer.join()
+    worker.join()
 
 def main(args=sys.argv):
     if '--once' in args:
@@ -81,7 +81,38 @@ def main(args=sys.argv):
                 print('\t{time:f} {runs: >8}\t{test}'.format(**test))
         print('total: {:f}'.format(total_time))
     else:
+        if is_django():
+            settings = None
+            for i, arg in enumerate(args[1:]):
+                if arg.startswith('--settings'):
+                    if arg.startswith('--settings='):
+                        settings = arg.split('=', 1)[0]
+                    else:
+                        settings = arg[i+1]
+                    break
+            if not settings and os.path.exists('test_settings.py'):
+                settings = 'test_settings'
+            if settings:
+                os.environ['DJANGO_SETTINGS_MODULE'] = settings
+            args[0:1] = ['./manage.py', 'test']
+        else:
+            args += ['--once']
+        for arg in args[:]:
+            if arg.startswith('--python='):
+                args = [arg.split('=', 1)[1]] + args
         autocheck(args)
+
+
+def is_django():
+    if os.path.exists('manage.py'):
+        with open('manage.py') as manage:
+            for line in manage:
+                if 'DJANGO_SETTINGS_MODULE' in line:
+                    try:
+                        import django
+                    except ImportError:
+                        return False
+                    return True
 
 if __name__ == '__main__':
     if sys.argv[0].endswith('main.py'):
