@@ -9,14 +9,13 @@ import datetime
 import logging
 import sys
 import time
-from io import BytesIO
 
-import six
 from six.moves import map, zip
 
 from . import status
 from .colorizer import ColourWritelnDecorator, ColourScheme
 from .compat import unittest
+from .encoding import ConsoleBuffer, smart_str
 from .filtersuite import filter_suite
 from .tagexpression import TagExpression
 
@@ -192,7 +191,7 @@ class TestResult(unittest.TestResult):
             self.stream.writeln(self.separator1)
             self.stream.writeln('%s: %s' % (flavour, self.getDescription(test)), colour=colour)
             self.stream.writeln(self.separator2)
-            self.stream.writeln(smart_utf8(err), colour=colour)
+            self.stream.writeln(smart_str(err), colour=colour)
     
     
     def _add_result(self, test, status):
@@ -228,23 +227,10 @@ class TestResult(unittest.TestResult):
     def _setupStdout(self):
         if self.buffer:
             if self._stderr_buffer is None:
-                self._stderr_buffer = UTF8StringIO()
-                self._stdout_buffer = UTF8StringIO()
+                self._stderr_buffer = ConsoleBuffer()
+                self._stdout_buffer = ConsoleBuffer()
             sys.stdout = self._stdout_buffer
             sys.stderr = self._stderr_buffer
-
-
-class UTF8StringIO(BytesIO):
-    
-    def write(self, s):
-        super(UTF8StringIO, self).write(smart_utf8(s))
-
-def smart_utf8(s):
-    if not isinstance(s, six.string_types):
-        s = six.text_type(s)
-    if isinstance(s, six.text_type):
-        s = s.encode('utf-8')
-    return s
     
 
 class TestRunner(object):
