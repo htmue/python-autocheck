@@ -325,6 +325,26 @@ class DatabaseVows(unittest.TestCase):
         results |should| each_be_equal_to([
             'test_name_2 (vows.test_db.Test)',
         ])
+    
+    def test_can_handle_exceptions_in_setUpClass(self):
+
+        class Test(self.Test):
+
+            @classmethod
+            def setUpClass(self):
+                raise
+
+        partial(self.add_result, Test('test_name')) |should_not| throw(Exception)
+    
+    def test_can_handle_exceptions_in_tearDownClass(self):
+
+        class Test(self.Test):
+
+            @classmethod
+            def tearDownClass(self):
+                raise
+
+        partial(self.add_result, Test('test_name')) |should_not| throw(Exception)
 
 #.............................................................................
 #   test_db.py

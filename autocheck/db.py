@@ -460,7 +460,10 @@ class Row(object):
 
 
 def source_hash(test_object):
-    test_method = getattr(test_object, test_object._testMethodName)
+    try:
+        test_method = getattr(test_object, test_object._testMethodName)
+    except AttributeError:
+        return ''
     try:
         source = test_method.__self__.getsource()
     except AttributeError:
