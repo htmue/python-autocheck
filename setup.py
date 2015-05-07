@@ -11,7 +11,7 @@ with open('README.rst') as readme:
 
 setup(
     name='autocheck',
-    version='0.2.6',
+    version='0.2.7',
     description='Improved unittest test runner',
     long_description=long_description,
     author='Hans-Thomas Mueller',
